@@ -1,0 +1,12 @@
+
+[default]
+  client_credentials = "YourCredentials"
+  client_secret = "YourSecret"
+  environment = "mypurecloud.com"
+
+[YourOrgName1]
+  client_credentials = "YourCredentials"
+  client_secret = "YourSecret"
+  environment = "mypurecloud.com"
+
+

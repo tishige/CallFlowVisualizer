@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CallFlowVisualizer": {
+      "commandName": "Project",
+      "commandLineArgs": "-f 98c7a9db-25b8-4584-8954-c8fe17b10d38 -v -n"
+    }
+  }
+}
