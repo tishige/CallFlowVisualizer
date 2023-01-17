@@ -684,6 +684,25 @@ namespace CallFlowVisualizer
             string branchTrackingId = null;
             string taskName = null;
             int i = 0;
+            List<JToken> response = new();
+
+            // [C]2023/01/17 fixed
+            if (StartActionIdList.Count == 0)
+            {
+                // Create Main task step
+                branchId = "00000000-0000-0000-0000-00000000000" + i.ToString();
+                branchNextAction = flowSeqItemList.Where(x => x.Value<string>("id") == initialSequence).Select(y => y.Value<string>("startAction")).FirstOrDefault()?.ToString() ?? initialSequence;
+                taskName = flowSeqItemList.Where(x => x.Value<string>("id") == initialSequence).Select(y => y.Value<string>("name")).FirstOrDefault()?.ToString() ?? "Main Task";
+
+                var jvalue = SetJvalue(branchId, "S", "Main Task:" + taskName, "Start", branchNextAction, null);
+                tmpActionList.Add(jvalue);
+
+
+                response = tmpActionList.ToList();
+
+                return response;
+
+            }
 
             foreach (var id_i in StartActionIdList)
             {
@@ -987,7 +1006,7 @@ namespace CallFlowVisualizer
 
             }
 
-            List<JToken> response = new();
+            response = new();
             response = tmpActionList.ToList();
 
             return response;

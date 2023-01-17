@@ -221,11 +221,22 @@ namespace CallFlowVisualizer
                 csv.WriteComment(" namespace: csvimport-");
                 csv.NextRecord();
 
-                for (int i = 0; i < maxParentIdRef; i++)
+                // [C]2023/01/17 fixed
+                if (maxParentIdRef == 0)
                 {
-                    string connectMsg = " connect: {\"from\":\"refs" + i.ToString() + "\", \"to\":\"id\", \"invert\":true, \"style\":"+"\""+lineStyle+"\""+"}";
+                    string connectMsg = " connect: {\"from\":\"refs" + maxParentIdRef.ToString() + "\", \"to\":\"id\", \"invert\":true, \"style\":" + "\"" + lineStyle + "\"" + "}";
                     csv.WriteComment(connectMsg);
                     csv.NextRecord();
+                }
+                else
+                {
+                    for (int i = 0; i < maxParentIdRef; i++)
+                    {
+                        string connectMsg = " connect: {\"from\":\"refs" + i.ToString() + "\", \"to\":\"id\", \"invert\":true, \"style\":" + "\"" + lineStyle + "\"" + "}";
+                        csv.WriteComment(connectMsg);
+                        csv.NextRecord();
+
+                    }
 
                 }
 
