@@ -110,6 +110,9 @@ namespace CallFlowVisualizer
             List<string> jsonFileList = new();
             JObject flowResponse = new();
 
+            // [B]2023/01/19 fixed
+            orgName = orgName.Replace(" ", "");
+
             foreach (var item in flowDataList)
             {
 
