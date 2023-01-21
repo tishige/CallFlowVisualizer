@@ -198,8 +198,6 @@ namespace CallFlowVisualizer
             }
 
             Console.WriteLine();
-
-            Console.WriteLine();
             ColorConsole.WriteLine("Completed!", ConsoleColor.Yellow);
             Environment.Exit(0);
         }

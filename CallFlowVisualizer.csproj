@@ -5,7 +5,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
-	  <Version>1.0.2</Version>
+	  <Version>1.0.3</Version>
     <Company>tishige</Company>
     <Copyright>tishige</Copyright>
   </PropertyGroup>
@@ -31,8 +31,13 @@
     <PackageReference Include="NLog" Version="5.0.5" />
     <PackageReference Include="PureCloudPlatform.Client.V2" Version="154.0.0" />
     <PackageReference Include="RestSharp" Version="106.3.1" />
-    <PackageReference Include="ShellProgressBar" Version="5.2.0" />
     <PackageReference Include="Tommy" Version="3.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ShellProgressBar">
+      <HintPath>ShellProgressBar.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
