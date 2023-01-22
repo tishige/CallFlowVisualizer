@@ -25,7 +25,7 @@ namespace CallFlowVisualizer
 
             Logger.Info($"Analyzing file: {jsonPath}");
 
-            using (var sr = new StreamReader(jsonPath,Encoding.UTF8))
+            using (var sr = new StreamReader(jsonPath, Encoding.UTF8))
             {
                 var jsonData = sr.ReadToEnd();
 
@@ -45,12 +45,22 @@ namespace CallFlowVisualizer
 
             string initialSequence = result["initialSequence"].ToString();
 
-            string defaultLanguage=null;
+            string defaultLanguage = null;
             if (result["defaultLanguage"] != null)
             {
                 defaultLanguage = result["defaultLanguage"].ToString();
 
             }
+
+            // [C]2023/01/19 fixed
+            string flowType = null;
+            if (result["type"] != null)
+            {
+                flowType = result["type"].ToString();
+
+            }
+
+
 
             JArray flowSeqItemList = result["flowSequenceItemList"].ToObject<JArray>();
             JArray reusableTaskList = null;
@@ -65,8 +75,8 @@ namespace CallFlowVisualizer
             // Create new branch nodes that are located just beneath of branch node.
             List<JToken> actionListBranchAdded = CreateBranchNode(flowSeqItemList, initialSequence, reusableTaskList, defaultLanguage);
             List<Tuple<string, string>> edges = new();
-            Dictionary<string,BranchStatus> branchStatusTable = new();
-            Dictionary<string,LoopStatus> loopStatusTable = new();
+            Dictionary<string, BranchStatus> branchStatusTable = new();
+            Dictionary<string, LoopStatus> loopStatusTable = new();
 
 
             foreach (var action_i in actionListBranchAdded)
@@ -87,9 +97,9 @@ namespace CallFlowVisualizer
                     if (!action_i["id"].ToString().Contains("__") && (string)action_i["__type"] != "AskForNLUNextIntentAction")
                     {
                         BranchStatus branchStatus = new();
-                        branchStatus.NextAction= (string)action_i["nextAction"];
+                        branchStatus.NextAction = (string)action_i["nextAction"];
                         branchStatus.ExitPathTotalCount = action_i["paths"].Count();
-                        
+
                         foreach (var eachPath in action_i["paths"])
                         {
 
@@ -103,10 +113,10 @@ namespace CallFlowVisualizer
                                 string caseLabel = eachPath["label"].ToString().Replace(" ", "");
                                 exitPathStatus.ExitPathId = (string)action_i["id"] + "__" + caseLabel + "__";
                             }
-                            
+
                             exitPathStatus.IsVisited = false;
                             branchStatus.ExitPaths.Add(exitPathStatus);
-                            
+
                         }
 
                         branchStatusTable.Add((string)action_i["id"], branchStatus);
@@ -167,8 +177,9 @@ namespace CallFlowVisualizer
 
                 if ((string)action_i["__type"] == "LoopAction")
                 {
-                    
-                    if ((string)action_i["path"]["nextActionId"]!= null){
+
+                    if ((string)action_i["path"]["nextActionId"] != null)
+                    {
 
                         loopStatusTable.Add((string)action_i["id"], new LoopStatus { NextAction = (string)action_i["nextAction"], IsOpen = false });
 
@@ -192,7 +203,7 @@ namespace CallFlowVisualizer
             {
 
                 Logger.Info(startId_i);
-                visitedForSort.AddRange(DFS(graph, (string)startId_i, actionListBranchAdded, branchStatusTable,loopStatusTable));
+                visitedForSort.AddRange(DFS(graph, (string)startId_i, actionListBranchAdded, branchStatusTable, loopStatusTable, flowType));
 
             }
 
@@ -211,7 +222,7 @@ namespace CallFlowVisualizer
                     flowNode.NextAction = action_i["nextAction"].ToString();
                 }
 
-                if(flowNode.Type== "AskForNLUNextIntentAction")
+                if (flowNode.Type == "AskForNLUNextIntentAction")
                 {
                     flowNode.NextAction = action_i["paths"][0]["nextActionId"].ToString();
                 }
@@ -325,7 +336,7 @@ namespace CallFlowVisualizer
                         break;
 
                     case "PlayAudioAction":
-                        string audioText= (string)action_i["prompts"]["defaultAudio"]["text"] ?? (string)action_i["prompts"]["defaultAudio"]["text"]; 
+                        string audioText = (string)action_i["prompts"]["defaultAudio"]["text"] ?? (string)action_i["prompts"]["defaultAudio"]["text"];
 
                         Regex regExAp = new Regex(@"((?:.+?\()(?!Append)(.+)(,.+))");
 
@@ -369,7 +380,7 @@ namespace CallFlowVisualizer
                 // Branch node
                 if (action_i["paths"] != null)
                 {
-                    if(flowNode.Type!= "AskForNLUNextIntentAction")
+                    if (flowNode.Type != "AskForNLUNextIntentAction")
                     {
                         foreach (var eachPath in action_i["paths"])
                         {
@@ -474,7 +485,7 @@ namespace CallFlowVisualizer
             }
 
             // Set parentId to just beneath of LoopAction node.
-            var loopActionNodeList = flowNodeList.Where(x => x.Type == "LoopAction" || x.Type== "AskForNLUNextIntentAction").Where(y => y.Path.Count > 0);
+            var loopActionNodeList = flowNodeList.Where(x => x.Type == "LoopAction" || x.Type == "AskForNLUNextIntentAction").Where(y => y.Path.Count > 0);
             foreach (var loopAction_i in loopActionNodeList)
             {
 
@@ -497,7 +508,7 @@ namespace CallFlowVisualizer
                             updateNode_i.ParentId.Add(loopRootId + "__LOOP__");
 
                         }
-                        
+
                     }
 
                 }
@@ -558,7 +569,7 @@ namespace CallFlowVisualizer
             {
 
                 // updateNode_i.Seq is 0 by default
-                if (updateNode_i.Id == id && updateNode_i.Seq==0)
+                if (updateNode_i.Id == id && updateNode_i.Seq == 0)
                 {
                     updateNode_i.Seq = seq;
                     break;
@@ -670,7 +681,7 @@ namespace CallFlowVisualizer
         /// </summary>
         /// <param name="FlowNodesList"></param>
         /// <returns></returns>
-        private static List<JToken> CreateBranchNode(JArray flowSeqItemList, string initialSequence, JArray reusableTaskList,string defaultLanguage)
+        private static List<JToken> CreateBranchNode(JArray flowSeqItemList, string initialSequence, JArray reusableTaskList, string defaultLanguage)
         {
 
             List<string> StartActionIdList = flowSeqItemList.Where(x => (string)x["startAction"] != null).Select(y => y.Value<string>("id")).ToList();
@@ -714,7 +725,7 @@ namespace CallFlowVisualizer
                     branchNextAction = flowSeqItemList.Where(x => x.Value<string>("id") == initialSequence).Select(y => y.Value<string>("startAction")).FirstOrDefault()?.ToString() ?? initialSequence;
                     taskName = flowSeqItemList.Where(x => x.Value<string>("id") == initialSequence).Select(y => y.Value<string>("name")).FirstOrDefault()?.ToString() ?? "Main Task";
 
-                    var jvalue = SetJvalue(branchId, "S", "Main Task:"+taskName, "Start", branchNextAction, null);
+                    var jvalue = SetJvalue(branchId, "S", "Main Task:" + taskName, "Start", branchNextAction, null);
                     tmpActionList.Add(jvalue);
 
                 }
@@ -736,7 +747,7 @@ namespace CallFlowVisualizer
 
                     }
 
-                    var jvalue = SetJvalue(branchId, "S", branchName+":"+taskName, "Start", branchNextAction, null);
+                    var jvalue = SetJvalue(branchId, "S", branchName + ":" + taskName, "Start", branchNextAction, null);
                     tmpActionList.Add(jvalue);
                 }
 
@@ -882,8 +893,8 @@ namespace CallFlowVisualizer
                         branchName = menuChoise_i["name"].ToString(); ;
                         branchType = menuChoise_i["action"]["__type"].ToString();
 
-                        string digit=null;
-                        string hasSpeechRecTerms=null;
+                        string digit = null;
+                        string hasSpeechRecTerms = null;
                         if (menuChoise_i["digit"] != null)
                         {
                             digit = menuChoise_i["digit"].ToString();
@@ -1094,12 +1105,12 @@ namespace CallFlowVisualizer
         /// <param name="branchTable"></param>
         /// <param name="loopTable"></param>
         /// <returns></returns>
-        private static List<string> DFS<T>(Graph<T> graph, string start, List<JToken> actionListBranchAdded, Dictionary<string, BranchStatus> branchStatusTable, Dictionary<string, LoopStatus> loopStatusTable)
+        private static List<string> DFS<T>(Graph<T> graph, string start, List<JToken> actionListBranchAdded, Dictionary<string, BranchStatus> branchStatusTable, Dictionary<string, LoopStatus> loopStatusTable, string flowType)
         {
             Stack<string> stack = new();
             HashSet<string> visited = new();
             List<string> visitedForSort = new();
-            Dictionary<string,List<string>> branchIdListinLoop = new();
+            Dictionary<string, List<string>> branchIdListinLoop = new();
             List<string> branchIdListinLoopClearNodeList = new();
             List<string> branchModeChangedToFalseNotVisitedSubList = new();
             Dictionary<string, List<string>> branchesInLoop = new();
@@ -1153,25 +1164,25 @@ namespace CallFlowVisualizer
 
                 if (branchStatusTable.SelectMany(x => x.Value.ExitPaths).Where(y => y.ExitPathId == vertex).Any())
                 {
-                    int maxExitBranchOpenSeq=branchStatusTable.SelectMany(x => x.Value.ExitPaths).Select(y => y.IsExitPathOpenSeq).Max();
-                    if (branchStatusTable.SelectMany(x=>x.Value.ExitPaths).Where(y=>y.ExitPathId==vertex).FirstOrDefault().IsExitPathOpenSeq == 0)
+                    int maxExitBranchOpenSeq = branchStatusTable.SelectMany(x => x.Value.ExitPaths).Select(y => y.IsExitPathOpenSeq).Max();
+                    if (branchStatusTable.SelectMany(x => x.Value.ExitPaths).Where(y => y.ExitPathId == vertex).FirstOrDefault().IsExitPathOpenSeq == 0)
                     {
                         branchStatusTable.SelectMany(x => x.Value.ExitPaths).Where(y => y.ExitPathId == vertex).FirstOrDefault().IsExitPathOpenSeq = maxExitBranchOpenSeq + 1;
                     }
-                    branchStatusTable.SelectMany(x => x.Value.ExitPaths).Where(y => y.ExitPathId == vertex).FirstOrDefault().IsVisited= true;
+                    branchStatusTable.SelectMany(x => x.Value.ExitPaths).Where(y => y.ExitPathId == vertex).FirstOrDefault().IsVisited = true;
                     branchStatusTable.Where(x => x.Key == vertex.Substring(0, vertex.IndexOf("_"))).Select(y => y.Value).FirstOrDefault().IsBranchOpen = true;
 
                     int ExitPathVisitedCount = branchStatusTable.Where(x => x.Key == vertex.Substring(0, vertex.IndexOf("_"))).Select(y => y.Value).FirstOrDefault().ExitPathVisitedCount;
                     int ExitPathTotalCount = branchStatusTable.Where(x => x.Key == vertex.Substring(0, vertex.IndexOf("_"))).Select(y => y.Value).FirstOrDefault().ExitPathTotalCount;
 
-                    ExitPathVisitedCount = ExitPathVisitedCount+1;
-                    branchStatusTable.Where(x => x.Key == vertex.Substring(0, vertex.IndexOf("_"))).Select(y => y.Value).FirstOrDefault().ExitPathVisitedCount= ExitPathVisitedCount;
-                    if(ExitPathTotalCount==ExitPathVisitedCount) branchStatusTable.Where(x => x.Key == vertex.Substring(0, vertex.IndexOf("_"))).Select(y => y.Value).FirstOrDefault().AllProcessed= true;
+                    ExitPathVisitedCount = ExitPathVisitedCount + 1;
+                    branchStatusTable.Where(x => x.Key == vertex.Substring(0, vertex.IndexOf("_"))).Select(y => y.Value).FirstOrDefault().ExitPathVisitedCount = ExitPathVisitedCount;
+                    if (ExitPathTotalCount == ExitPathVisitedCount) branchStatusTable.Where(x => x.Key == vertex.Substring(0, vertex.IndexOf("_"))).Select(y => y.Value).FirstOrDefault().AllProcessed = true;
 
 
                     // Add branchNodeId if tracing in loopNode
-                    List<string> currentOpenLoopIds =loopStatusTable.Where(x=>x.Value.IsOpen).Select(x=>x.Key).ToList();
-                    if(currentOpenLoopIds.Count != 0)
+                    List<string> currentOpenLoopIds = loopStatusTable.Where(x => x.Value.IsOpen).Select(x => x.Key).ToList();
+                    if (currentOpenLoopIds.Count != 0)
                     {
                         foreach (var currentOpenLoopIds_i in currentOpenLoopIds)
                         {
@@ -1211,16 +1222,16 @@ namespace CallFlowVisualizer
                     if (nextActionOfCurrentVertex == null)
                     {
                         Logger.Info("hit");
-                        var previousVisitedBranch = visitedBranches.SelectMany(x => x.Keys).Where(x=>x.Equals(vertex)==false).LastOrDefault();
+                        var previousVisitedBranch = visitedBranches.SelectMany(x => x.Keys).Where(x => x.Equals(vertex) == false).LastOrDefault();
 
                         foreach (var visitedBranches_i in Enumerable.Reverse(visitedBranches).ToList())
                         {
 
-                            if (!visitedBranches_i.ContainsKey(vertex) && visitedBranches_i.Any(x=>x.Value!=null))
+                            if (!visitedBranches_i.ContainsKey(vertex) && visitedBranches_i.Any(x => x.Value != null))
                             {
                                 string nextActionOfVisitedBranch = visitedBranches_i.Select(x => x.Value).FirstOrDefault().ToString();
                                 // Set nextAction and exit foreach loop if nextAction is not visited yet
-                                if (vertex != GetTokenStringFromALBA(actionListBranchAdded, nextActionOfVisitedBranch, "nextAction") && !visited.Any(x=>x.Contains(nextActionOfVisitedBranch)))
+                                if (vertex != GetTokenStringFromALBA(actionListBranchAdded, nextActionOfVisitedBranch, "nextAction") && !visited.Any(x => x.Contains(nextActionOfVisitedBranch)))
                                 {
                                     loopStatusTable.Where(x => x.Key == vertex).FirstOrDefault().Value.AssignedNextAction = visitedBranches_i.Select(x => x.Value).FirstOrDefault().ToString();
                                     break;
@@ -1232,14 +1243,14 @@ namespace CallFlowVisualizer
                         }
 
                         // Still no nextAction in loopNode?
-                        if(String.IsNullOrEmpty(loopStatusTable.Where(x => x.Key == vertex).FirstOrDefault().Value.AssignedNextAction))
+                        if (String.IsNullOrEmpty(loopStatusTable.Where(x => x.Key == vertex).FirstOrDefault().Value.AssignedNextAction))
                         {
                             // Go backward in visitedForSort and collect two branches with nextAction
                             Dictionary<string, int> hasNextActionVisitedBranches = new();
                             foreach (var visitedForSort_i in Enumerable.Reverse(visitedForSort).ToList())
                             {
 
-                                if (visitedForSort_i.Contains("__") && !String.IsNullOrEmpty(branchStatusTable.Where(x=>x.Key==RemoveUnderScoreOfSubNode(visitedForSort_i)).FirstOrDefault().Value.NextAction))
+                                if (visitedForSort_i.Contains("__") && !String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == RemoveUnderScoreOfSubNode(visitedForSort_i)).FirstOrDefault().Value.NextAction))
                                 {
                                     int posOfbranch = visitedForSort.IndexOf(RemoveUnderScoreOfSubNode(visitedForSort_i));
                                     if (!hasNextActionVisitedBranches.ContainsKey(RemoveUnderScoreOfSubNode(visitedForSort_i)))
@@ -1272,8 +1283,8 @@ namespace CallFlowVisualizer
 
                         }
 
-                        var canCloseNode = branchStatusTable.Where(x => x.Value.IsBranchOpen == true && x.Value.AllProcessed == false).OrderByDescending(x=>x.Value.IsOpenSeq).FirstOrDefault().Key;
-                        loopStatusTable.Where(x=>x.Key==vertex).FirstOrDefault().Value.CanCloseNode = canCloseNode;
+                        var canCloseNode = branchStatusTable.Where(x => x.Value.IsBranchOpen == true && x.Value.AllProcessed == false).OrderByDescending(x => x.Value.IsOpenSeq).FirstOrDefault().Key;
+                        loopStatusTable.Where(x => x.Key == vertex).FirstOrDefault().Value.CanCloseNode = canCloseNode;
 
                     }
 
@@ -1301,6 +1312,9 @@ namespace CallFlowVisualizer
                         string firstFoundBranchNodeId = null;
                         int firstFoundBranchNodeIdPosInVisitedBranches = 0;
 
+                        // [C]2023/01/19 fixed
+                        bool preventConnectToLoopEnd = false;
+
                         foreach (var visitedNodes_i in Enumerable.Reverse(visitedForSort).ToList())
                         {
 
@@ -1319,12 +1333,12 @@ namespace CallFlowVisualizer
                                 firstFoundBranchNodeIdPosInVisitedBranches = visitedBranches.SelectMany(x => x.Keys).ToList().IndexOf(tmp_visitedNodes_i);
 
                                 List<string> visitedBranchesKey = new();
-                                visitedBranchesKey.AddRange(visitedBranches.SelectMany(x=>x.Keys).ToList());
+                                visitedBranchesKey.AddRange(visitedBranches.SelectMany(x => x.Keys).ToList());
 
                                 if (visitedBranchesKey.LastOrDefault() != tmp_visitedNodes_i)
                                 {
                                     int firstFoundBranchPos = visitedBranchesKey.IndexOf(tmp_visitedNodes_i);
-                                    visitedBranchesKey.RemoveRange(firstFoundBranchNodeIdPosInVisitedBranches+1, visitedBranchesKey.Count-firstFoundBranchNodeIdPosInVisitedBranches-1);
+                                    visitedBranchesKey.RemoveRange(firstFoundBranchNodeIdPosInVisitedBranches + 1, visitedBranchesKey.Count - firstFoundBranchNodeIdPosInVisitedBranches - 1);
 
                                 }
 
@@ -1332,19 +1346,19 @@ namespace CallFlowVisualizer
                                 foreach (var visitedBranchesKey_i in Enumerable.Reverse(visitedBranchesKey))
                                 {
 
-                                    if (loopStatusTable.ContainsKey(visitedBranchesKey_i.ToString())&&String.IsNullOrEmpty(upperLoopNodeId)) 
+                                    if (loopStatusTable.ContainsKey(visitedBranchesKey_i.ToString()) && String.IsNullOrEmpty(upperLoopNodeId))
                                     {
                                         upperLoopNodeId = visitedBranchesKey_i;
 
                                     }
 
- 
-                                    if(branchStatusTable.ContainsKey(visitedBranchesKey_i)&&!String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == RemoveUnderScoreOfSubNode(visitedBranchesKey_i)).FirstOrDefault().Value.NextAction))
+
+                                    if (branchStatusTable.ContainsKey(visitedBranchesKey_i) && !String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == RemoveUnderScoreOfSubNode(visitedBranchesKey_i)).FirstOrDefault().Value.NextAction))
                                     {
                                         string tmp_NextAction = branchStatusTable.Where(x => x.Key == RemoveUnderScoreOfSubNode(visitedBranchesKey_i)).FirstOrDefault().Value.NextAction;
-                                        if(branchStatusTable.Where(x=>x.Key==tmp_NextAction).Any() && String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == RemoveUnderScoreOfSubNode(tmp_NextAction)).FirstOrDefault().Value.NextAction) ||tmp_NextAction==vertex)
+                                        if (branchStatusTable.Where(x => x.Key == tmp_NextAction).Any() && String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == RemoveUnderScoreOfSubNode(tmp_NextAction)).FirstOrDefault().Value.NextAction) || tmp_NextAction == vertex)
                                         {
-                                            Logger.Info("skipped");
+                                            Logger.Info("skipped 01");
 
                                         }
                                         else
@@ -1359,7 +1373,7 @@ namespace CallFlowVisualizer
                                         }
 
                                     }
-                                    if(!String.IsNullOrEmpty(upperLoopNodeId)&&!String.IsNullOrEmpty(upperBranchNodeId))
+                                    if (!String.IsNullOrEmpty(upperLoopNodeId) && !String.IsNullOrEmpty(upperBranchNodeId))
                                     {
                                         break;
 
@@ -1383,7 +1397,7 @@ namespace CallFlowVisualizer
                                 // There is caseNode without nextAction on the way back, avoid using nextAction of branchNode under the sibling case branch.
                                 bool IsvisitedCaseNode = false;
                                 string visitedCaseBranch = reverseTraced.Where(x => x.Contains("__Case")).FirstOrDefault()?.ToString();
-                                if(!String.IsNullOrEmpty(visitedCaseBranch)&& String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == RemoveUnderScoreOfSubNode(visitedCaseBranch)).FirstOrDefault().Value.NextAction))
+                                if (!String.IsNullOrEmpty(visitedCaseBranch) && String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == RemoveUnderScoreOfSubNode(visitedCaseBranch)).FirstOrDefault().Value.NextAction))
                                 {
                                     // Skip if there is branchNode with nextAction under caseNode without nextAction. If there is a branchNode with nextAction on top of a caseNode without nextAction,I want to use it.
                                     int posOfnoNextActionCaseNode = visitedForSort.IndexOf(RemoveUnderScoreOfSubNode(visitedCaseBranch));
@@ -1399,7 +1413,7 @@ namespace CallFlowVisualizer
                                 bool ShouldSkipBranch = false;
                                 // Now it traced back to the branchNode with nextAction, but if this nextAction is already on the way back, skip it.
                                 nextActionOfbranchNode = branchStatusTable.Where(x => x.Key == tmp_visitedNodes_i).FirstOrDefault().Value.NextAction;
-                                if (!String.IsNullOrEmpty(nextActionOfbranchNode)&&!reverseTraced.Contains(nextActionOfbranchNode) && !IsvisitedCaseNode)
+                                if (!String.IsNullOrEmpty(nextActionOfbranchNode) && !reverseTraced.Contains(nextActionOfbranchNode) && !IsvisitedCaseNode)
                                 {
                                     // The branchNode without nextAction was already closed, although it was not on the way back. Skip it and go back to the top of loopNode.
                                     var branchesInReverseTraced = reverseTraced.Where(x => x.Contains("__")).ToList();
@@ -1446,9 +1460,9 @@ namespace CallFlowVisualizer
                         }
 
                         // LoopNode was found first on the way back.
-                        if (loopPos<branchPos &&!String.IsNullOrEmpty(loopNodeId)&& String.IsNullOrEmpty(GetTokenStringFromALBA(actionListBranchAdded, vertex, "nextAction")))
+                        if (loopPos < branchPos && !String.IsNullOrEmpty(loopNodeId) && String.IsNullOrEmpty(GetTokenStringFromALBA(actionListBranchAdded, vertex, "nextAction")))
                         {
-                            if (GetTokenStringFromALBA(actionListBranchAdded, loopNodeId + "__LOOP__", "nextAction") != vertex && loopNodeId==upperLoopNodeId)
+                            if (GetTokenStringFromALBA(actionListBranchAdded, loopNodeId + "__LOOP__", "nextAction") != vertex && loopNodeId == upperLoopNodeId)
                             {
                                 SetValueToALBA(actionListBranchAdded, vertex, "nextAction", upperLoopNodeId + "__LOOP__");
                                 Logger.Info("Set 01");
@@ -1480,7 +1494,7 @@ namespace CallFlowVisualizer
                             if (openSeqNextActionOfbranchNode > openSeqOfbranchNode && !String.IsNullOrEmpty(loopNodeId) && String.IsNullOrEmpty(GetTokenStringFromALBA(actionListBranchAdded, vertex, "nextAction")))
                             {
                                 // BranchNode with nextAction comes first after loopNode, but the destination node is without nextAction, then change to loopEND.
-                                if(String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == nextActionOfbranchNode).Select(x => x.Value.NextAction).ToString()))
+                                if (String.IsNullOrEmpty(branchStatusTable.Where(x => x.Key == nextActionOfbranchNode).Select(x => x.Value.NextAction).ToString()))
                                 {
                                     // Not used
                                     SetValueToALBA(actionListBranchAdded, vertex, "nextAction", loopNodeId + "__LOOP__");
@@ -1513,17 +1527,42 @@ namespace CallFlowVisualizer
                                 var na = loopStatusTable_i.Value.NextAction;
                                 var assignedna = loopStatusTable_i.Value.AssignedNextAction;
 
-                                if(na==vertex || assignedna == vertex)
+                                if (na == vertex || assignedna == vertex)
                                 {
-                                    Logger.Info("skip");
+                                    Logger.Info("skipped 02");
 
                                 }
                                 else
                                 {
                                     if (loopNodeId == upperLoopNodeId)
                                     {
-                                        SetValueToALBA(actionListBranchAdded, vertex, "nextAction", loopNodeId + "__LOOP__");
-                                        Logger.Info("Set 06");
+                                        // [C]2023/01/19 fixed
+                                        bool IsNaOfloopIdVisited = false;
+
+                                        if ((!String.IsNullOrEmpty(na) && reverseTraced.Any(x => x.Contains(na))) || (!String.IsNullOrEmpty(assignedna) && reverseTraced.Any(x => x.Contains(assignedna))))
+                                        {
+                                            IsNaOfloopIdVisited = true;
+                                        }
+
+
+                                        if (flowType == "inqueuecall" && vertex.Contains("__") && loopStatusTable.Any(x => x.Key == upperLoopNodeId && x.Value.IsOpen == true) && IsNaOfloopIdVisited)
+                                        {
+                                            Logger.Info("skipped 03");
+                                            preventConnectToLoopEnd = true;
+
+                                        }
+                                        else
+                                        {
+
+                                            SetValueToALBA(actionListBranchAdded, vertex, "nextAction", loopNodeId + "__LOOP__");
+                                            Logger.Info("Set 06");
+
+                                        }
+
+
+
+
+
 
                                     }
                                     else
@@ -1591,8 +1630,23 @@ namespace CallFlowVisualizer
                         {
                             if (!String.IsNullOrEmpty(upperLoopNodeId))
                             {
-                                SetValueToALBA(actionListBranchAdded, vertex, "nextAction", upperLoopNodeId + "__LOOP__");
-                                Logger.Info("Set 12");
+                                // [C]2023/01/19 fixed
+                                if (flowType == "inqueuecall" && vertex.Contains("__") && loopStatusTable.Any(x => x.Key == upperLoopNodeId && x.Value.IsOpen == false) || preventConnectToLoopEnd)
+                                {
+                                    Logger.Info("skipped 03");
+
+
+                                }
+                                else
+                                {
+                                    SetValueToALBA(actionListBranchAdded, vertex, "nextAction", upperLoopNodeId + "__LOOP__");
+                                    Logger.Info("Set 12");
+
+                                }
+
+
+
+
 
                             }
                             Logger.Info("No nextAction!!!");
@@ -1633,7 +1687,7 @@ namespace CallFlowVisualizer
                     string currentVertex = RemoveUnderScoreOfSubNode(vertex);
 
                     // Current vertex is nextAction of a loopNode. can be closed?
-                    if (loopStatusTable.Any(x => x.Value.NextAction == currentVertex||x.Value.AssignedNextAction==currentVertex||x.Value.CanCloseNode==currentVertex))
+                    if (loopStatusTable.Any(x => x.Value.NextAction == currentVertex || x.Value.AssignedNextAction == currentVertex || x.Value.CanCloseNode == currentVertex))
                     {
                         string currentLoopId = loopStatusTable.Where(x => x.Value.IsOpen == true).OrderByDescending(x => x.Value.IsOpenSeq).FirstOrDefault().Key;
 
@@ -1702,7 +1756,7 @@ namespace CallFlowVisualizer
                                         {
                                             nextActionOfpreviousLoopNode = loopStatusTable.Where(x => x.Value.NextAction == nextActionOfcurrentLoopNode || x.Value.AssignedNextAction == nextActionOfcurrentLoopNode).Select(x => x.Key).FirstOrDefault();
 
-                                            if(vertex == nextActionOfcurrentLoopNode && currentLoopId==nextActionOfpreviousLoopNode)
+                                            if (vertex == nextActionOfcurrentLoopNode && currentLoopId == nextActionOfpreviousLoopNode)
                                             {
                                                 SetValueToALBA(actionListBranchAdded, currentLoopId + "__LOOP__", "nextAction", nextActionOfcurrentLoopNode);
                                                 loopStatusTable.Where(x => x.Key == currentLoopId).FirstOrDefault().Value.IsOpenSeq = -1;
@@ -1768,21 +1822,21 @@ namespace CallFlowVisualizer
             if (loopStatusTable.Any(x => x.Value.IsOpen == true))
             {
 
-                foreach (var loopStatusTable_i in loopStatusTable.Where(x=>x.Value.IsOpen==true))
+                foreach (var loopStatusTable_i in loopStatusTable.Where(x => x.Value.IsOpen == true))
                 {
 
                     if (visitedForSort.Contains(loopStatusTable_i.Value.AssignedNextAction) && String.IsNullOrEmpty(GetTokenStringFromALBA(actionListBranchAdded, loopStatusTable_i.Key + "__LOOP__", "nextAction")))
                     {
                         // In some cases, nested loopNodes can not be closed because the final disconnect step is reached first.
-                        string previousLoopNodeId = nodesInLoop.Where(x=>x.Key!=loopStatusTable_i.Key && x.Value.Contains(loopStatusTable_i.Key)).Select(x => x.Key).FirstOrDefault();
+                        string previousLoopNodeId = nodesInLoop.Where(x => x.Key != loopStatusTable_i.Key && x.Value.Contains(loopStatusTable_i.Key)).Select(x => x.Key).FirstOrDefault();
                         string nextActionOfpreviousLoopNodeId = null;
-                        if (!String.IsNullOrEmpty(previousLoopNodeId)) 
+                        if (!String.IsNullOrEmpty(previousLoopNodeId))
                         {
                             nextActionOfpreviousLoopNodeId = loopStatusTable.Where(x => x.Key == previousLoopNodeId).Select(x => x.Value.NextAction).FirstOrDefault();
                         }
-                        if(nextActionOfpreviousLoopNodeId == loopStatusTable_i.Value.AssignedNextAction)
+                        if (nextActionOfpreviousLoopNodeId == loopStatusTable_i.Value.AssignedNextAction)
                         {
-                            SetValueToALBA(actionListBranchAdded, loopStatusTable_i.Key + "__LOOP__", "nextAction", previousLoopNodeId+"__LOOP__");
+                            SetValueToALBA(actionListBranchAdded, loopStatusTable_i.Key + "__LOOP__", "nextAction", previousLoopNodeId + "__LOOP__");
                             Logger.Info("Set 18");
 
                         }
@@ -1901,7 +1955,7 @@ namespace CallFlowVisualizer
         /// <param name="currentLoopId"></param>
         /// <param name="currentVertex"></param>
         /// <returns></returns>
-        private static bool IsAllBranchesProcessed(Dictionary<string, BranchStatus> branchStatusTable, Dictionary<string, LoopStatus> loopStatusTable, Dictionary<string, List<string>> branchesInLoop, HashSet<string> visited,string currentLoopId,string currentVertex)
+        private static bool IsAllBranchesProcessed(Dictionary<string, BranchStatus> branchStatusTable, Dictionary<string, LoopStatus> loopStatusTable, Dictionary<string, List<string>> branchesInLoop, HashSet<string> visited, string currentLoopId, string currentVertex)
         {
             bool isVisited = false;
             if (branchesInLoop.Any(x => x.Key == currentLoopId))
@@ -1962,7 +2016,7 @@ namespace CallFlowVisualizer
             internal string NextAction { get; set; } = null;
             internal int ExitPathTotalCount { get; set; } = 0;
             internal int ExitPathVisitedCount { get; set; } = 0;
-            internal List<ExitPathStatus> ExitPaths { get; set; }= new();
+            internal List<ExitPathStatus> ExitPaths { get; set; } = new();
             internal bool AllProcessed { get; set; } = false;
             internal bool IsBranchOpen { get; set; } = false;
             internal int IsOpenSeq { get; set; } = 0;
