@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
-
+using NLog;
 
 namespace CallFlowVisualizer
 {
@@ -97,6 +97,51 @@ namespace CallFlowVisualizer
             return csvFileResultList;
 
         }
+
+        internal static void gcJsonToPDListCSV(List<string> filePathList)
+        {
+
+            //var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
+
+            //bool appendGcFlowTypeToFileName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().AppendGcFlowTypeToFileName;
+            //bool appendGcOrgNameToFileName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().AppendGcOrgNameToFileName;
+
+            //List<string> pdListCSVFileResultList = new();
+
+            Console.WriteLine();
+            ColorConsole.WriteLine("Creating Participant Data List of Architect flow", ConsoleColor.Yellow);
+
+            var pboptions = new ProgressBarOptions
+            {
+                ProgressCharacter = '─',
+                ProgressBarOnBottom = true
+            };
+
+            var csvpb = new ProgressBar(filePathList.Count(), "Creating Participant Data List CSV file", pboptions);
+
+            List<GenesysCloudParticipantData> gcPDList = new();
+
+            foreach (var jsonFilePath_i in filePathList)
+            {
+
+                var pdResult = CollectGCParticipantData.CollectParticipantData(jsonFilePath_i);
+                if(pdResult != null)
+                {
+                    gcPDList.AddRange(pdResult);
+
+                }
+
+                csvpb.Tick(jsonFilePath_i);
+                Console.WriteLine();
+
+            }
+
+            CreateCSV.CreatePDListCSVGenCloud(gcPDList);
+            Console.WriteLine();
+
+
+        }
+
 
     }
 }

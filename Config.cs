@@ -30,6 +30,7 @@ namespace CallFlowVisualizer
         public bool AppendGcFlowTypeToFileName { get; set; }
         public bool AppendGcOrgNameToFileName { get; set; }
         public List<string> ConditionNodeList { get; set; }
+        public bool CreateParticipantDataList { get; set; }
 
     }
 

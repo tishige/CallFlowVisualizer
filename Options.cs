@@ -31,6 +31,11 @@ namespace CallFlowVisualizer
         [Option('a', "architect", Required = false, HelpText = "Read all json files in Architect folder")]
         public bool architect { get; set; } = false;
 
+        // Create Participant Data list of Architect flow
+        [Option('l', "list", Required = false, HelpText = "Create Participant Data list of Architect flow ")]
+        public bool createParticipantDataList { get; set; } = false;
+
+
         // Set file name at arg[0]
         [Value(0,Hidden =true)]
         public string Filename { get; set; } = null!;

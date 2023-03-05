@@ -36,10 +36,10 @@ namespace CallFlowVisualizer
 
 
             var parseResult = Parser.Default.ParseArguments<Options>(args);
-            Options opt= new();
+            Options opt = new();
 
             string mode = "";
-            FileInfo[] fileInfo=null;
+            FileInfo[] fileInfo = null;
             List<string> jsonFiles = null;
             switch (parseResult.Tag)
             {
@@ -60,7 +60,7 @@ namespace CallFlowVisualizer
                     if (opt.drawio || opt.visio || opt.png)
                     {
                         Process[] processes = Process.GetProcessesByName("draw.io");
-                        if(processes.Length > 0)
+                        if (processes.Length > 0)
                         {
                             ColorConsole.WriteError($"draw.io is running. Close draw.io first.");
                             Environment.Exit(1);
@@ -90,10 +90,10 @@ namespace CallFlowVisualizer
 
                     }
 
-                    if (opt.flowId !=null && args!=null)
+                    if (opt.flowId != null && args != null)
                     {
                         Regex regEx = new Regex(@"(^([0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12})$)");
-                        if (regEx.Match(opt.flowId).Success || opt.flowId=="all")
+                        if (regEx.Match(opt.flowId).Success || opt.flowId == "all")
                         {
                             mode = "FetchFromGenesysCloud";
                             break;
@@ -151,7 +151,7 @@ namespace CallFlowVisualizer
             ColorConsole.WriteLine($"Mode : {mode} started.", ConsoleColor.Yellow);
 
             List<string> csvFileResultList = new List<string>();
-
+            List<string> jsonFileListPD = new();
             switch (mode)
             {
 
@@ -166,15 +166,17 @@ namespace CallFlowVisualizer
 
                 case "GenesysCloud":
 
-                    List<string> jsonFileList = new(){ opt.Filename };
-                    csvFileResultList =GcJSONtoCSV.gcJsonToCSV(jsonFileList,opt);
+                    List<string> jsonFileList = new() { opt.Filename };
+                    csvFileResultList = GcJSONtoCSV.gcJsonToCSV(jsonFileList, opt);
+                    jsonFileListPD = jsonFileList;
                     break;
 
                 case "FetchFromGenesysCloud":
 
                     FetchGCAccessToken.GetAccessToken(opt.profile);
                     jsonFileList = FetchFlows.CreateArchitectJSONFile(opt.flowId);
-                    csvFileResultList= GcJSONtoCSV.gcJsonToCSV(jsonFileList, opt);
+                    csvFileResultList = GcJSONtoCSV.gcJsonToCSV(jsonFileList, opt);
+                    jsonFileListPD = jsonFileList;
 
                     Console.WriteLine();
                     break;
@@ -182,6 +184,7 @@ namespace CallFlowVisualizer
                 case "architect":
 
                     csvFileResultList = GcJSONtoCSV.gcJsonToCSV(jsonFiles, opt);
+                    jsonFileListPD = jsonFiles;
                     break;
 
                 default:
@@ -193,8 +196,13 @@ namespace CallFlowVisualizer
 
             if (opt.drawio || opt.visio || opt.png)
             {
-                DrawFlow.DrawFlowFromCSV(csvFileResultList,opt.visio,opt.png);
+                DrawFlow.DrawFlowFromCSV(csvFileResultList, opt.visio, opt.png);
 
+            }
+
+            if(opt.createParticipantDataList)
+            {
+                GcJSONtoCSV.gcJsonToPDListCSV(jsonFileListPD);
             }
 
             Console.WriteLine();
@@ -220,6 +228,7 @@ namespace CallFlowVisualizer
             sb.AppendLine(@"  -p --profile   [PROFILE NAME] Change GenesysCloud organization.Use [default] if not specified.");
             sb.AppendLine(@"  -v --visio     Convert to visio file after creating drawio files");
             sb.AppendLine(@"  -n --png       Convert to png file after creating drawio files");
+            sb.AppendLine(@"  -l --list      Create Participant Data CSV list");
             sb.AppendLine(@"  --help         Show this screen.");
             sb.AppendLine(@"  --version      Show version.");
             sb.AppendLine(@"  --debug        Show node id of architect on diagram.");

@@ -8,14 +8,14 @@ namespace CallFlowVisualizer
 {
     internal class DrawFlow
     {
-        internal static void DrawFlowFromCSV(List<string> csvFileResultList,bool visio,bool png)
+        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png)
         {
             ColorConsole.WriteLine($"Creating drawio diagram", ConsoleColor.Yellow);
             string currentPath = Directory.GetCurrentDirectory();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                if (!File.Exists(Path.Combine(currentPath, "drawio", "draw.io.app","Contents/MacOS/draw.io")))
+                if (!File.Exists(Path.Combine(currentPath, "drawio", "draw.io.app", "Contents/MacOS/draw.io")))
                 {
                     ColorConsole.WriteError(@"drawio.io.app does not exist.Create drawio folder and Copy /drawio-desktop/dist/mac/draw.io.app into it.");
                     Environment.Exit(1);
@@ -104,23 +104,24 @@ namespace CallFlowVisualizer
                 drawpb.Tick(csvFile_i);
                 p = Process.Start(startInfo);
                 p.WaitForExit();
-                
+
                 if (IsDrawioFileSizeZero(currentPath, csvFile_i))
                 {
-                    while(true)
+                    while (true)
                     {
                         ColorConsole.WriteWarning("Creating drawio file was failed. Retrying...");
                         p = Process.Start(startInfo);
                         p.WaitForExit();
 
-                        if(!IsDrawioFileSizeZero(currentPath, csvFile_i))
+                        if (!IsDrawioFileSizeZero(currentPath, csvFile_i))
                         {
                             break;
 
                         }
                         else
                         {
-                            if (--maxRetryCount == 0) {
+                            if (--maxRetryCount == 0)
+                            {
                                 ColorConsole.WriteError($"Please Try again later {csvFile_i}");
                                 break;
 
@@ -140,15 +141,15 @@ namespace CallFlowVisualizer
             {
                 ColorConsole.WriteLine("Convert to VISIO", ConsoleColor.Yellow);
                 var visiopb = new ProgressBar(csvFileResultList.Count(), "Convert to VISIO", pboptions);
-                
+
                 if (!Directory.Exists(Path.Combine(currentPath, "visio")))
                     Directory.CreateDirectory(Path.Combine(currentPath, "visio"));
 
                 foreach (var csvFile_i in csvFileResultList)
                 {
-                    
+
                     string drawioFile = Path.ChangeExtension(Path.GetFileName(csvFile_i), ".drawio");
-                    drawioFile=Path.Combine(currentPath,"flow", drawioFile);
+                    drawioFile = Path.Combine(currentPath, "flow", drawioFile);
                     string outPutFolder = Path.Combine(currentPath, "visio");
 
                     startInfo = new ProcessStartInfo();
@@ -164,7 +165,7 @@ namespace CallFlowVisualizer
 
                     }
 
-                    startInfo.Arguments = "-x -f vsdx " + drawioFile + " -o "+outPutFolder;
+                    startInfo.Arguments = "-x -f vsdx " + drawioFile + " -o " + outPutFolder;
                     visiopb.Tick(drawioFile);
                     p = Process.Start(startInfo);
                     p.WaitForExit();
@@ -223,7 +224,7 @@ namespace CallFlowVisualizer
         /// <param name="currentPath"></param>
         /// <param name="csvfileName"></param>
         /// <returns></returns>
-        private static bool IsDrawioFileSizeZero(string currentPath,string csvfileName)
+        private static bool IsDrawioFileSizeZero(string currentPath, string csvfileName)
         {
             FileInfo file = new FileInfo(Path.Combine(currentPath, "flow", Path.GetFileNameWithoutExtension(csvfileName) + ".drawio"));
             try

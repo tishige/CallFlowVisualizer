@@ -6,6 +6,9 @@ using System.Globalization;
 using ShellProgressBar;
 using Microsoft.Extensions.Configuration;
 using PureCloudPlatform.Client.V2.Client;
+using PureCloudPlatform.Client.V2.Model;
+using System.Diagnostics;
+using PureCloudPlatform.Client.V2.Extensions.Notifications;
 
 namespace CallFlowVisualizer
 {
@@ -344,6 +347,91 @@ namespace CallFlowVisualizer
             return csvfilename;
 
         }
+
+        internal static void CreatePDListCSVGenCloud(List<GenesysCloudParticipantData> gcPDList)
+        {
+            string currentPath = Directory.GetCurrentDirectory();
+            createCSVFolder(currentPath);
+
+            string csvfilename = Path.Combine(currentPath, "csv", "PDLIST" + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss") + ".csv");
+
+            // The file need to be UTF-8 without BOM
+            using (var streamWriter = new StreamWriter(csvfilename, false, Encoding.Default))
+
+            using (var csv = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+            {
+
+                csv.WriteField("OrgName");
+                csv.WriteField("FlowType");
+                csv.WriteField("FlowID");
+                csv.WriteField("ArchitectFlowName");
+                csv.WriteField("FlowName");
+                csv.WriteField("Name");
+                csv.WriteField("Id");
+                csv.WriteField("Type");
+                csv.WriteField("ExpressionText");
+                csv.WriteField("VariableText");
+                csv.WriteField("Statement");
+                csv.WriteField("MetaRefId");
+                csv.WriteField("MetaName");
+                csv.NextRecord();
+
+                foreach (var gcPDList_i in gcPDList)
+                {
+
+                    foreach (var variables_i in gcPDList_i.Variables)
+                    {
+
+                        if(variables_i.MetaDataList.Count > 0)
+                        {
+                            foreach (var metaData_i in variables_i.MetaDataList)
+                            {
+                                csv.WriteField(gcPDList_i.OrgName);
+                                csv.WriteField(gcPDList_i.FlowType);
+                                csv.WriteField(gcPDList_i.FlowID);
+                                csv.WriteField(gcPDList_i.ArchitectFlowName);
+                                csv.WriteField(gcPDList_i.FlowName);
+                                csv.WriteField(gcPDList_i.Name);
+                                csv.WriteField(gcPDList_i.Id);
+                                csv.WriteField(gcPDList_i.Type);
+
+                                csv.WriteField(variables_i.ExpressionText);
+                                csv.WriteField(variables_i.VariableText);
+                                csv.WriteField(variables_i.Statement);
+                                csv.WriteField(metaData_i.MetaRefId);
+                                csv.WriteField(metaData_i.MetaName);
+                                csv.NextRecord();
+                            }
+
+
+                        }
+                        else
+                        {
+                            csv.WriteField(gcPDList_i.OrgName);
+                            csv.WriteField(gcPDList_i.FlowType);
+                            csv.WriteField(gcPDList_i.FlowID);
+                            csv.WriteField(gcPDList_i.ArchitectFlowName);
+                            csv.WriteField(gcPDList_i.FlowName);
+                            csv.WriteField(gcPDList_i.Name);
+                            csv.WriteField(gcPDList_i.Id);
+                            csv.WriteField(gcPDList_i.Type);
+
+                            csv.WriteField(variables_i.ExpressionText);
+                            csv.WriteField(variables_i.VariableText);
+                            csv.WriteField(variables_i.Statement);
+                            csv.WriteField(null);
+                            csv.WriteField(null);
+                            csv.NextRecord();
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
 
         // Create CSV folder if it does not exists
         private static void createCSVFolder(string currentPath)

@@ -96,6 +96,7 @@ _Note: Replace sample values for org name, flowID and flow name with your actual
 | -f       | Fetch latest flows from GenesysCloud                                                    |
 | -a       | Load all JSON files in Architect folder                                                 |
 | -p       | Organization name <br>If you omit this argument , [default] in config.toml will be used |
+| -l       | Create Genesys Cloud Participant Data List as PDList_YYYYMMDD-hhmmss.csv                |
 
 ## 5. Customize file format and style
 
@@ -112,6 +113,7 @@ Change config values in appsettings.json
 | lineRound                  | Draw rounded lines                                                    | true    |
 | convertToVisio             | Always convert to Visio format without specifying -v option           | false   |
 | convertToPng               | Always convert to png format without specifying -n option             | true    |
+| CreateParticipantDataList  | Always create Genesys Cloud Participant Data List                     | true    |
 
 ## 6. TIPS
 
