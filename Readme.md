@@ -114,6 +114,7 @@ Change config values in appsettings.json
 | convertToVisio             | Always convert to Visio format without specifying -v option           | false   |
 | convertToPng               | Always convert to png format without specifying -n option             | true    |
 | CreateParticipantDataList  | Always create Genesys Cloud Participant Data List                     | true    |
+| DisableAcceleration        | Disable GPU acceleration to prevent drawio GPU related error          | false   |
 
 ## 6. TIPS
 
