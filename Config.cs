@@ -45,6 +45,8 @@ namespace CallFlowVisualizer
         public int MaxRetryCount { get; set; }
         public bool ConvertToVisio { get; set; }
         public bool ConvertToPng { get; set; }
+        public bool DisableAcceleration { get; set; }
+
 
     }
 

@@ -19,12 +19,16 @@ namespace CallFlowVisualizer
 
             bool convertToVisio = false;
             bool convertToPng = false;
+            bool disableAcceleration = false;
+
 
             try
             {
                 var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
                 convertToVisio = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().ConvertToVisio;
                 convertToPng = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().ConvertToPng;
+                disableAcceleration = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().DisableAcceleration;
+
 
             }
             catch (Exception)
@@ -196,7 +200,7 @@ namespace CallFlowVisualizer
 
             if (opt.drawio || opt.visio || opt.png)
             {
-                DrawFlow.DrawFlowFromCSV(csvFileResultList, opt.visio, opt.png);
+                DrawFlow.DrawFlowFromCSV(csvFileResultList, opt.visio, opt.png, disableAcceleration);
 
             }
 

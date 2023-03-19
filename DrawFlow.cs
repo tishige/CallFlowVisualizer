@@ -8,7 +8,7 @@ namespace CallFlowVisualizer
 {
     internal class DrawFlow
     {
-        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png)
+        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png, bool disableAcceleration)
         {
             ColorConsole.WriteLine($"Creating drawio diagram", ConsoleColor.Yellow);
             string currentPath = Directory.GetCurrentDirectory();
@@ -100,7 +100,20 @@ namespace CallFlowVisualizer
 
                 }
 
-                startInfo.Arguments = "-i " + csvFile_i;
+                //20230319 --disable-acceleration
+
+                if (disableAcceleration)
+                {
+                    startInfo.Arguments = "-i " + csvFile_i + " --disable-acceleration";
+
+                }
+                else
+                {
+                    startInfo.Arguments = "-i " + csvFile_i;
+
+                }
+
+
                 drawpb.Tick(csvFile_i);
                 p = Process.Start(startInfo);
                 p.WaitForExit();
@@ -165,7 +178,18 @@ namespace CallFlowVisualizer
 
                     }
 
-                    startInfo.Arguments = "-x -f vsdx " + drawioFile + " -o " + outPutFolder;
+                    if (disableAcceleration)
+                    {
+                        startInfo.Arguments = "-x -f vsdx " + drawioFile + " -o " + outPutFolder + " --disable-acceleration";
+                    }
+                    else
+                    {
+                        startInfo.Arguments = "-x -f vsdx " + drawioFile + " -o " + outPutFolder;
+
+                    }
+
+
+
                     visiopb.Tick(drawioFile);
                     p = Process.Start(startInfo);
                     p.WaitForExit();
@@ -205,7 +229,16 @@ namespace CallFlowVisualizer
 
                     }
 
-                    startInfo.Arguments = "-x -f png " + drawioFile + " -o " + outPutFolder;
+                    if (disableAcceleration)
+                    {
+                        startInfo.Arguments = "-x -f png " + drawioFile + " -o " + outPutFolder + " --disable-acceleration";
+                    }
+                    else
+                    {
+                        startInfo.Arguments = "-x -f png " + drawioFile + " -o " + outPutFolder;
+
+                    }
+
                     pngpb.Tick(drawioFile);
                     p = Process.Start(startInfo);
                     p.WaitForExit();
