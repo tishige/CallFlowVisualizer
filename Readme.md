@@ -113,8 +113,10 @@ Change config values in appsettings.json
 | lineRound                  | Draw rounded lines                                                    | true    |
 | convertToVisio             | Always convert to Visio format without specifying -v option           | false   |
 | convertToPng               | Always convert to png format without specifying -n option             | true    |
-| CreateParticipantDataList  | Always create Genesys Cloud Participant Data List                     | true    |
-| DisableAcceleration        | Disable GPU acceleration to prevent drawio GPU related error          | false   |
+| createParticipantDataList  | Always create Genesys Cloud Participant Data List                     | true    |
+| createflowPerReusabletask  | Create flow per Re-usable Task                                        | true    |
+| maxSecondDescriptionLengh  | Max second description length                                         | 1024    |
+| showExpression             | Show expression for UpdateVariableAction / Get/SetAttributesAction    | true    |
 
 ## 6. TIPS
 
