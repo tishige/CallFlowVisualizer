@@ -11,6 +11,8 @@ using System.Text.RegularExpressions;
 using PureCloudPlatform.Client.V2.Model;
 using NLog.Targets;
 using System.ComponentModel;
+using System.Xml.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace CallFlowVisualizer
 {
@@ -60,9 +62,14 @@ namespace CallFlowVisualizer
 
             }
 
+            // [ADD-3]2023/03/25
+            var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
+            int maxSecondDescriptionLengh = configRoot.GetSection("cfvSettings").Get<CfvSettings>().MaxSecondDescriptionLengh;
+            bool showExpression = configRoot.GetSection("cfvSettings").Get<CfvSettings>().ShowExpression;
 
 
             JArray flowSeqItemList = result["flowSequenceItemList"].ToObject<JArray>();
+
             JArray reusableTaskList = null;
             var hasReusableTaskList = result["uiMetaData"]["task"];
             if (hasReusableTaskList != null)
@@ -216,6 +223,21 @@ namespace CallFlowVisualizer
                 flowNode.Id = action_i["id"].ToString();
                 flowNode.Type = action_i["__type"].ToString();
 
+                // [ADD-1]2023/03/25
+                if (action_i["taskName"] != null)
+                {
+                    flowNode.FlowGroup = action_i["taskName"].ToString();
+
+                }
+                else
+                {
+                    string notVisitedSubNodeId = (string)action_i["id"];
+                    string[] tokens = notVisitedSubNodeId.Split("__");
+                    string notVisitedNodeId = tokens[0];
+                    string taskNameFromParentNode = actionListBranchAdded.Where(x => (string)x["id"] == notVisitedNodeId).Select(x => x["taskName"]).FirstOrDefault().ToString();
+                    flowNode.FlowGroup = taskNameFromParentNode;
+                }
+
                 if (action_i["nextAction"] != null)
                 {
                     flowNode.NextAction = action_i["nextAction"].ToString();
@@ -225,8 +247,6 @@ namespace CallFlowVisualizer
                 {
                     flowNode.NextAction = action_i["paths"][0]["nextActionId"].ToString();
                 }
-
-
 
                 if (action_i["parentId"] != null)
                 {
@@ -366,10 +386,32 @@ namespace CallFlowVisualizer
 
                         break;
 
-                    case "CallTaskAction":
-                        flowNode.Desc2 = (string)action_i["taskName"] ?? (string)action_i["taskName"];
+                    case "UpdateVariableAction":
+                        List<JToken> variables = new();
+                        if (showExpression)
+                        {
+                            variables = action_i["variables"].ToList();
+                            flowNode.Desc2 = CreateVariableDescriotions(variables, maxSecondDescriptionLengh, flowNode.Type);
 
+                        }
                         break;
+
+                    case "SetAttributesAction":
+                        if (showExpression)
+                        {
+                            variables = action_i["variables"].ToList();
+                            flowNode.Desc2 = CreateVariableDescriotions(variables, maxSecondDescriptionLengh, flowNode.Type);
+                        }
+                        break;
+
+                    case "GetAttributesAction":
+                        if (showExpression)
+                        {
+                            variables = action_i["variables"].ToList();
+                            flowNode.Desc2 = CreateVariableDescriotions(variables, maxSecondDescriptionLengh, flowNode.Type);
+                        }
+                        break;
+
 
                     default:
 
@@ -885,7 +927,25 @@ namespace CallFlowVisualizer
                 // Basic menu flow
                 if (flowSeqItem["menuChoiceList"] != null)
                 {
-                    tmpActionList.Add(flowSeqItem);
+                    // [ADD-1]2023/03/25
+                    string guiTaskName = flowSeqItem["name"].ToString();
+                    branchId = flowSeqItem["id"].ToString();
+                    branchTrackingId = flowSeqItem["trackingId"].ToString();
+                    branchName = flowSeqItem["name"].ToString(); ;
+                    branchType = flowSeqItem["__type"].ToString();
+
+                    JObject jvalueGuiTopNode = new()
+                    {
+                        { "id", new JValue(branchId) },
+                        { "trackingId", new JValue(branchTrackingId) },
+                        { "name", new JValue(branchName) },
+                        { "__type", new JValue(branchType) },
+                        { "taskName", new JValue(guiTaskName) }
+
+                    };
+
+                    tmpActionList.Add(jvalueGuiTopNode);
+                    //tmpActionList.Add(flowSeqItem);//do not delete -v1.1
 
                     foreach (var menuChoise_i in flowSeqItem["menuChoiceList"])
                     {
@@ -1019,6 +1079,8 @@ namespace CallFlowVisualizer
                                 break;
                         }
 
+                        // [ADD-1]2023/03/25
+                        jvalue.Add("taskName", guiTaskName);
                         tmpActionList.Add(jvalue);
 
                     }
@@ -1130,6 +1192,34 @@ namespace CallFlowVisualizer
             stack.Push(start);
             Logger.Info($"DFS Push: {start}");
 
+
+            // [ADD-1]2023/03/25
+            string taskName = GetTokenStringFromALBA(actionListBranchAdded, start, "name");
+            if(!String.IsNullOrEmpty(taskName) )
+            {
+                Regex regTaskName = new Regex(@"(?:Task:)(.+)");
+                Match matchOrg = regTaskName.Match(taskName);
+                if (matchOrg.Success)
+                {
+                    GroupCollection group = matchOrg.Groups;
+                    taskName = group[1].Value;
+                }
+
+                foreach (char c in Path.GetInvalidFileNameChars())
+                {
+                    taskName = taskName.Replace(c, '_');
+                }
+                taskName = taskName.Replace(' ', '_');
+
+            }
+            else
+            {
+                taskName = "Unknown";
+            }
+
+
+
+
             while (stack.Count > 0)
             {
 
@@ -1146,6 +1236,9 @@ namespace CallFlowVisualizer
                 visited.Add(vertex);
                 visitedForSort.Add(vertex);
                 Logger.Info($"(vtx:{vertex})DFS visitedForSort Add");
+                // [ADD-1]2023/03/25
+                SetValueToALBA(actionListBranchAdded, vertex, "taskName", taskName);
+                
 
                 // Logged the list of branches that have been visited, with or without nextAction.
                 if (branchStatusTable.Any(x => x.Key == vertex) || loopStatusTable.Any(x => x.Key == vertex))
@@ -2038,6 +2131,58 @@ namespace CallFlowVisualizer
 
             return isVisited;
         }
+
+        /// <summary>
+        /// Show variables on flow
+        /// </summary>
+        /// <param name="variablesList"></param>
+        /// <param name="maxSecondDescriptionLengh"></param>
+        /// <returns></returns>
+        private static string CreateVariableDescriotions(List<JToken> variablesList,int maxSecondDescriptionLengh,string type)
+        {
+            int expCount = variablesList.Count();
+            string br = "<br>";
+            string cologne = ":";
+            string equal = "=";
+            int eachLinePaddingLength = expCount.ToString().Length + br.Length + cologne.Length+equal.Length;
+            int maxDescLengthEachLine = (maxSecondDescriptionLengh / expCount) - eachLinePaddingLength;
+
+            string result=null;
+
+            for (int i = 0; i < expCount; i++)
+            {
+                int idx = i+1;
+                string expressionText = (string)variablesList[i]["expression"]["text"];
+                string variableText = (string)variablesList[i]["variable"]["text"];
+
+                expressionText = expressionText.Trim().Replace("\"", "`").Replace("\\", "").Replace(" ", "");
+                variableText = variableText.Trim().Replace("\"", "`").Replace("\\", "").Replace(" ", "");
+                string formula = null;
+
+                if(type== "GetAttributesAction")
+                {
+                    formula = expressionText + equal + variableText;
+
+                }
+                else
+                {
+                    formula = variableText + equal + expressionText;
+                }
+
+                if (formula.Length > maxDescLengthEachLine)
+                {
+                    formula.Substring(0, maxDescLengthEachLine);
+
+                }
+                formula = idx.ToString() + cologne + formula + br;
+                result = result + formula;
+
+            }
+
+            return result;
+        }
+
+
 
 
         internal class BranchStatus

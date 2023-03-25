@@ -31,7 +31,7 @@ namespace CallFlowVisualizer
             string nodeStyle = getNodeStyle(colorNode, nodeRound);
             string lineStyle = getLineStyle(lineRound);
 
-            List<string> profileNodePath = flowElementsList.Where(x=>x.Type=="Profile").Select(x=>x.NodePath).ToList();
+            List<string> profileNodePath = flowElementsList.Where(x => x.Type == "Profile").Select(x => x.NodePath).ToList();
             List<string> csvFileResultList = new();
 
             var pboptions = new ProgressBarOptions
@@ -47,12 +47,12 @@ namespace CallFlowVisualizer
 
                 List<PureConnectFlowElements> eachFlowElement = new();
 
-                eachFlowElement = flowElementsList.Where(x=>x.NodePath.Contains(path_i)).ToList();
-                string profileName = eachFlowElement.Where(x=>x.Type=="Profile").Select(x => x.Name).FirstOrDefault()?.ToString();
+                eachFlowElement = flowElementsList.Where(x => x.NodePath.Contains(path_i)).ToList();
+                string profileName = eachFlowElement.Where(x => x.Type == "Profile").Select(x => x.Name).FirstOrDefault()?.ToString();
 
                 if (profileName == null) profileName = "Profile";
-                
-                profileName = profileName.Trim().Replace(" ","_").Replace("&", "and");
+
+                profileName = profileName.Trim().Replace(" ", "_").Replace("&", "and");
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
 
@@ -70,7 +70,7 @@ namespace CallFlowVisualizer
                 }
                 else
                 {
-                    csvfilename = Path.Combine(currentPath, "csv", profileName+ ".csv");
+                    csvfilename = Path.Combine(currentPath, "csv", profileName + ".csv");
 
                 }
 
@@ -136,9 +136,9 @@ namespace CallFlowVisualizer
                         csv.WriteField(element_i.Type);
                         csv.WriteField(element_i.Name);
                         csv.WriteField(getDescription(element_i, element_i.Type));
-                        csv.WriteField(element_i.Digit.Replace("-","").Replace("X",""));
+                        csv.WriteField(element_i.Digit.Replace("-", "").Replace("X", ""));
 
-                        string[] shapeStyle = getShapeStyle(element_i.Type,null);
+                        string[] shapeStyle = getShapeStyle(element_i.Type, null);
                         csv.WriteField(shapeStyle[0]); // fill
                         csv.WriteField(shapeStyle[1]); //stroke
                         csv.WriteField(shapeStyle[2]); //shape
@@ -161,7 +161,7 @@ namespace CallFlowVisualizer
 
         }
 
-        internal static string CreateCSVGenCloud(List<GenesysCloudFlowNode> FlowNodeList,string flowName,string flowId, bool debug)
+        internal static string CreateCSVGenCloud(List<GenesysCloudFlowNode> FlowNodeList, string flowName, string flowId, bool debug, string flowGroup)
         {
 
             var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
@@ -181,14 +181,24 @@ namespace CallFlowVisualizer
             string nodeStyle = getNodeStyle(colorNode, nodeRound);
             string lineStyle = getLineStyle(lineRound);
 
+            //[ADD-1]2023/03/25
+            int maxSecondDescriptionLengh = configRoot.GetSection("cfvSettings").Get<CfvSettings>().MaxSecondDescriptionLengh;
+
+
             string currentPath = Directory.GetCurrentDirectory();
             createCSVFolder(currentPath);
 
             string csvfilename;
 
+            if (!String.IsNullOrEmpty(flowGroup))
+            {
+                flowName = flowName + "(" + flowGroup + ")";
+            }
+
+
             if (appendGcFlowIdToCSVFileName)
             {
-                flowName = flowName +"_"+ flowId;
+                flowName = flowName + "_" + flowId;
 
             }
 
@@ -205,7 +215,7 @@ namespace CallFlowVisualizer
                     csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + flowId + ".csv");
 
                 }
-                
+
             }
 
             int maxParentIdRef = FlowNodeList.Select(x => x.ParentId).ToList().OrderByDescending(x => x.Count()).Take(1).FirstOrDefault().Count();
@@ -251,9 +261,9 @@ namespace CallFlowVisualizer
                 csv.NextRecord();
                 csv.WriteComment(" ignore: id,shape,fill,stroke,refs");
                 csv.NextRecord();
-                csv.WriteComment(" nodespacing: "+ nodespacing);
+                csv.WriteComment(" nodespacing: " + nodespacing);
                 csv.NextRecord();
-                csv.WriteComment(" levelspacing: "+ levelspacing);
+                csv.WriteComment(" levelspacing: " + levelspacing);
                 csv.NextRecord();
                 csv.WriteComment(" edgespacing: 40");
                 csv.NextRecord();
@@ -316,11 +326,11 @@ namespace CallFlowVisualizer
 
                         }
 
-                        desc2 = trancateDescription(desc2);
+                        desc2 = trancateDescription(desc2, maxSecondDescriptionLengh);
                         csv.WriteField(desc2); //QueueTo Skill etc...
                     }
 
-                    string[] shapeStyle = getShapeStyle(node_i.Type,conditionList);
+                    string[] shapeStyle = getShapeStyle(node_i.Type, conditionList);
                     csv.WriteField(shapeStyle[0]); // fill
                     csv.WriteField(shapeStyle[1]); //stroke
                     csv.WriteField(shapeStyle[2]); //shape
@@ -382,7 +392,7 @@ namespace CallFlowVisualizer
                     foreach (var variables_i in gcPDList_i.Variables)
                     {
 
-                        if(variables_i.MetaDataList.Count > 0)
+                        if (variables_i.MetaDataList.Count > 0)
                         {
                             foreach (var metaData_i in variables_i.MetaDataList)
                             {
@@ -489,7 +499,7 @@ namespace CallFlowVisualizer
             return str.Replace("\"", "");
         }
 
-        private static string trancateDescription(string str)
+        private static string trancateDescription(string str, int maxSecondDescriptionLengh)
         {
             if (str == null)
             {
@@ -497,11 +507,11 @@ namespace CallFlowVisualizer
 
             }
 
-            str=str.Replace("\n", "").Replace("\r","");
+            str = str.Replace("\n", "").Replace("\r", "");
 
-            if (str.Length >= 51)
+            if (str.Length >= maxSecondDescriptionLengh)
             {
-                return str.Substring(0, 50);
+                return str.Substring(0, maxSecondDescriptionLengh);
 
             }
 
@@ -512,7 +522,7 @@ namespace CallFlowVisualizer
         {
             string jumpToNode = "";
             if (jumpToNodes == null) return jumpToNode;
-            jumpToNode = String.Join(",",jumpToNodes);
+            jumpToNode = String.Join(",", jumpToNodes);
             jumpToNode = replaceBackSlash(jumpToNode);
             return jumpToNode;
         }
@@ -539,13 +549,13 @@ namespace CallFlowVisualizer
             }
 
             return style;
-        
+
         }
 
         // Whether line is rounded
         private static string getLineStyle(bool lineRound)
         {
-            string lineStyle=null;
+            string lineStyle = null;
 
             if (lineRound)
             {
@@ -563,7 +573,7 @@ namespace CallFlowVisualizer
         }
 
         // Set shape and color according to Type value
-        private static string[] getShapeStyle(string nodeType,List<string> conditionList)
+        private static string[] getShapeStyle(string nodeType, List<string> conditionList)
         {
             string[] shapeArray = new string[3];
             // PureConnect
@@ -628,7 +638,7 @@ namespace CallFlowVisualizer
 
             }
 
-            if (conditionList!=null && conditionList.Where(x => x == nodeType).Any())
+            if (conditionList != null && conditionList.Where(x => x == nodeType).Any())
             {
                 shapeArray[0] = "#fff2cc"; //orange
                 shapeArray[1] = "#d6b656";
@@ -663,60 +673,60 @@ namespace CallFlowVisualizer
         }
 
         // Change bottom step description according to Type value
-        private static string getDescription(PureConnectFlowElements flowElement,string nodeType)
+        private static string getDescription(PureConnectFlowElements flowElement, string nodeType)
         {
             string description = "";
             // PureConnect
-                if (nodeType == "Profile")
+            if (nodeType == "Profile")
+            {
+                if (flowElement.DNISString != null) { description = flowElement.DNISString.Trim(); }
+
+            }
+
+            if (nodeType == "Schedule")
+            {
+                if (flowElement.ScheduleRef != null) { description = flowElement.ScheduleRef.Trim(); }
+
+                if (description.Length > 25)
                 {
-                    if (flowElement.DNISString != null) { description = flowElement.DNISString.Trim(); }
-
-                }
-
-                if (nodeType == "Schedule")
-                {
-                    if(flowElement.ScheduleRef != null) { description = flowElement.ScheduleRef.Trim(); }
-
-                    if (description.Length > 25)
+                    int pos = 25;
+                    do
                     {
-                        int pos = 25;
-                        do
-                        {
-                            description = description.Insert(pos, "<br>");
-                            pos = pos + 25;
+                        description = description.Insert(pos, "<br>");
+                        pos = pos + 25;
 
-                        } while (description.Length > pos);
-
-                    }
+                    } while (description.Length > pos);
 
                 }
 
-                if (nodeType == "Workgroup Transfer")
-                {
-                    description = flowElement.Workgroup + "(" + flowElement.Skills + ")";
+            }
 
-                }
+            if (nodeType == "Workgroup Transfer")
+            {
+                description = flowElement.Workgroup + "(" + flowElement.Skills + ")";
 
-                if (nodeType == "StationGroup")
-                {
-                    description = flowElement.StationGroup;
+            }
 
-                }
+            if (nodeType == "StationGroup")
+            {
+                description = flowElement.StationGroup;
 
-                if (nodeType == "Audio Playback"|| nodeType == "Queue Audio")
-                {
-                    description = flowElement.AudioFile;
+            }
 
-                }
+            if (nodeType == "Audio Playback" || nodeType == "Queue Audio")
+            {
+                description = flowElement.AudioFile;
 
-                if (nodeType == "Menu")
-                {
-                    description = flowElement.MenuDigits;
+            }
 
-                }
+            if (nodeType == "Menu")
+            {
+                description = flowElement.MenuDigits;
+
+            }
 
             return description;
-            
+
         }
 
     }

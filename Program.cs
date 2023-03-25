@@ -20,7 +20,7 @@ namespace CallFlowVisualizer
             bool convertToVisio = false;
             bool convertToPng = false;
             bool disableAcceleration = false;
-
+            int maxSecondDescriptionLengh = 50;
 
             try
             {
@@ -28,6 +28,7 @@ namespace CallFlowVisualizer
                 convertToVisio = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().ConvertToVisio;
                 convertToPng = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().ConvertToPng;
                 disableAcceleration = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().DisableAcceleration;
+                maxSecondDescriptionLengh = configRoot.GetSection("cfvSettings").Get<CfvSettings>().MaxSecondDescriptionLengh;
 
 
             }
@@ -37,6 +38,15 @@ namespace CallFlowVisualizer
                 PrintUsage();
 
             }
+
+            if (maxSecondDescriptionLengh <= 0 || maxSecondDescriptionLengh >= 1025)
+            {
+                ColorConsole.WriteError($"maxSecondDescriptionLength should be from 1 to 1024.");
+                PrintUsage();
+
+            }
+
+
 
 
             var parseResult = Parser.Default.ParseArguments<Options>(args);
@@ -204,7 +214,7 @@ namespace CallFlowVisualizer
 
             }
 
-            if(opt.createParticipantDataList)
+            if (opt.createParticipantDataList)
             {
                 GcJSONtoCSV.gcJsonToPDListCSV(jsonFileListPD);
             }

@@ -25,6 +25,7 @@ namespace CallFlowVisualizer
             
             bool appendGcFlowTypeToFileName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().AppendGcFlowTypeToFileName;
             bool appendGcOrgNameToFileName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().AppendGcOrgNameToFileName;
+            bool createflowPerReusabletask = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateflowPerReusabletask;
 
             List<string> csvFileResultList = new();
 
@@ -88,7 +89,34 @@ namespace CallFlowVisualizer
                     flowName = flowName.Replace(c, '_');
                 }
 
-                csvFileResultList.Add(CreateCSV.CreateCSVGenCloud(flowNodesList, flowName, flowId, opt.debug));
+                // [ADD-1]2023/03/25
+                if (createflowPerReusabletask)
+                {
+                    var flowNodeListGrouped = flowNodesList.GroupBy(x=>x.FlowGroup).ToList();
+
+                    foreach (var flowNodeListGrouped_i in flowNodeListGrouped)
+                    {
+                        string flowGroupName = flowNodeListGrouped_i.Key;
+
+                        foreach (char c in Path.GetInvalidFileNameChars())
+                        {
+                            flowGroupName = flowGroupName.Replace(c, '_');
+                        }
+
+                        flowGroupName = flowGroupName.Replace(' ', '_');
+                        List<GenesysCloudFlowNode> flowNodesListPerTask = new();
+                        flowNodesListPerTask = flowNodeListGrouped_i.ToList();
+                        csvFileResultList.Add(CreateCSV.CreateCSVGenCloud(flowNodesListPerTask, flowName, flowId, opt.debug, flowGroupName));
+
+                    }
+
+                }
+                else
+                {
+                    csvFileResultList.Add(CreateCSV.CreateCSVGenCloud(flowNodesList, flowName, flowId, opt.debug,null));
+
+                }
+
 
             }
 
@@ -100,13 +128,6 @@ namespace CallFlowVisualizer
 
         internal static void gcJsonToPDListCSV(List<string> filePathList)
         {
-
-            //var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
-
-            //bool appendGcFlowTypeToFileName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().AppendGcFlowTypeToFileName;
-            //bool appendGcOrgNameToFileName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().AppendGcOrgNameToFileName;
-
-            //List<string> pdListCSVFileResultList = new();
 
             Console.WriteLine();
             ColorConsole.WriteLine("Creating Participant Data List of Architect flow", ConsoleColor.Yellow);

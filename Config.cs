@@ -31,6 +31,10 @@ namespace CallFlowVisualizer
         public bool AppendGcOrgNameToFileName { get; set; }
         public List<string> ConditionNodeList { get; set; }
         public bool CreateParticipantDataList { get; set; }
+        public bool CreateflowPerReusabletask { get; set; }
+        public int MaxSecondDescriptionLengh { get; set; }
+        public bool ShowExpression { get; set; }
+
 
     }
 
@@ -46,7 +50,6 @@ namespace CallFlowVisualizer
         public bool ConvertToVisio { get; set; }
         public bool ConvertToPng { get; set; }
         public bool DisableAcceleration { get; set; }
-
 
     }
 
