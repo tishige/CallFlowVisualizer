@@ -114,9 +114,11 @@ Change config values in appsettings.json
 | convertToVisio             | Always convert to Visio format without specifying -v option           | false   |
 | convertToPng               | Always convert to png format without specifying -n option             | true    |
 | createParticipantDataList  | Always create Genesys Cloud Participant Data List                     | true    |
-| createflowPerReusabletask  | Create flow per Re-usable Task                                        | true    |
+| createflowPerReusabletask  | Create draw.io flow files per Re-usable Task                          | false   |
 | maxSecondDescriptionLengh  | Max second description length                                         | 1024    |
 | showExpression             | Show expression for UpdateVariableAction / Get/SetAttributesAction    | true    |
+| createPagePerReusabletask  | Create a separate page in draw.io for each Re-usable Task flow        | true    |
+
 
 ## 6. TIPS
 

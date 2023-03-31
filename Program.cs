@@ -19,7 +19,7 @@ namespace CallFlowVisualizer
 
             bool convertToVisio = false;
             bool convertToPng = false;
-            bool disableAcceleration = false;
+            bool disableAcceleration=false;
             int maxSecondDescriptionLengh = 50;
 
             try
@@ -39,7 +39,7 @@ namespace CallFlowVisualizer
 
             }
 
-            if (maxSecondDescriptionLengh <= 0 || maxSecondDescriptionLengh >= 1025)
+            if(maxSecondDescriptionLengh<=0 || maxSecondDescriptionLengh >= 1025)
             {
                 ColorConsole.WriteError($"maxSecondDescriptionLength should be from 1 to 1024.");
                 PrintUsage();
@@ -214,7 +214,7 @@ namespace CallFlowVisualizer
 
             }
 
-            if (opt.createParticipantDataList)
+            if(opt.createParticipantDataList)
             {
                 GcJSONtoCSV.gcJsonToPDListCSV(jsonFileListPD);
             }

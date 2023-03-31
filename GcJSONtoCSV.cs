@@ -25,7 +25,9 @@ namespace CallFlowVisualizer
             
             bool appendGcFlowTypeToFileName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().AppendGcFlowTypeToFileName;
             bool appendGcOrgNameToFileName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().AppendGcOrgNameToFileName;
-            bool createflowPerReusabletask = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateflowPerReusabletask;
+            bool createFlowPerReusabletask = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFlowPerReusabletask;
+            bool createPagePerReusabletask = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreatePagePerReusabletask;
+
 
             List<string> csvFileResultList = new();
 
@@ -90,7 +92,7 @@ namespace CallFlowVisualizer
                 }
 
                 // [ADD-1]2023/03/25
-                if (createflowPerReusabletask)
+                if (createFlowPerReusabletask)
                 {
                     var flowNodeListGrouped = flowNodesList.GroupBy(x=>x.FlowGroup).ToList();
 
@@ -111,7 +113,11 @@ namespace CallFlowVisualizer
                     }
 
                 }
-                else
+                else if (createPagePerReusabletask) //[ADD] 2023/03/31
+                {
+                    csvFileResultList.Add(CreateCSV.CreateCSVGenCloudPerPage(flowNodesList, flowName, flowId, opt.debug, null));
+
+                }else
                 {
                     csvFileResultList.Add(CreateCSV.CreateCSVGenCloud(flowNodesList, flowName, flowId, opt.debug,null));
 

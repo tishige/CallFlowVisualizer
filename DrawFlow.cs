@@ -8,7 +8,7 @@ namespace CallFlowVisualizer
 {
     internal class DrawFlow
     {
-        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png, bool disableAcceleration)
+        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png,bool disableAcceleration)
         {
             ColorConsole.WriteLine($"Creating drawio diagram", ConsoleColor.Yellow);
             string currentPath = Directory.GetCurrentDirectory();
@@ -178,7 +178,7 @@ namespace CallFlowVisualizer
 
                     }
 
-                    if (disableAcceleration)
+                    if(disableAcceleration)
                     {
                         startInfo.Arguments = "-x -f vsdx " + drawioFile + " -o " + outPutFolder + " --disable-acceleration";
                     }

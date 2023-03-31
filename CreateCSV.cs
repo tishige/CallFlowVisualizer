@@ -220,12 +220,21 @@ namespace CallFlowVisualizer
 
             int maxParentIdRef = FlowNodeList.Select(x => x.ParentId).ToList().OrderByDescending(x => x.Count()).Take(1).FirstOrDefault().Count();
 
+            //[ADD] 2023/03/31
+            int flowGroupCount = FlowNodeList.Where(x => x.Type == "Start" || x.Type == "Menu").Distinct().Count();
+            string flowGroupName = "Architect Flow";
+
+            if (flowGroupCount == 1)
+            {
+                flowGroupName = FlowNodeList.Where(x => x.Type == "Start" || x.Type == "Menu").Select(x => x.FlowGroup).FirstOrDefault();
+            }
+
             // The file need to be UTF-8 without BOM
             using (var streamWriter = new StreamWriter(csvfilename, false, Encoding.Default))
 
             using (var csv = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
             {
-                csv.WriteField("## Architect Flow");
+                csv.WriteField("## "+flowGroupName);
                 csv.NextRecord();
                 csv.WriteComment(" label: %type%<br>%desc1%<br>%desc2%");
                 csv.NextRecord();
@@ -357,6 +366,233 @@ namespace CallFlowVisualizer
             return csvfilename;
 
         }
+
+        internal static string CreateCSVGenCloudPerPage(List<GenesysCloudFlowNode> FlowNodeList, string flowName, string flowId, bool debug, string flowGroup)
+        {
+            //[ADD] 2023/03/31
+            var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
+            var cfvSettings = configRoot.GetSection("cfvSettings").Get<CfvSettings>();
+            bool appendDatetime = cfvSettings.AppendDateTimeToFileName;
+            bool appendGcFlowIdToCSVFileName = cfvSettings.AppendGcFlowIdToFileName;
+            List<string> conditionList = cfvSettings.ConditionNodeList;
+
+            var drawIOSettings = configRoot.GetSection("drawioSettings").Get<DrawioSettings>();
+            bool colorNode = drawIOSettings.ColorNode;
+            bool nodeRound = drawIOSettings.NodeRound;
+            bool lineRound = drawIOSettings.LineRound;
+            int nodespacing = drawIOSettings.Nodespacing;
+            int levelspacing = drawIOSettings.Levelspacing;
+            bool replaceSpecialCharacter = drawIOSettings.ReplaceSpecialCharacter;
+
+            string nodeStyle = getNodeStyle(colorNode, nodeRound);
+            string lineStyle = getLineStyle(lineRound);
+
+            //[ADD-1]2023/03/25
+            int maxSecondDescriptionLengh = configRoot.GetSection("cfvSettings").Get<CfvSettings>().MaxSecondDescriptionLengh;
+
+
+            string currentPath = Directory.GetCurrentDirectory();
+            createCSVFolder(currentPath);
+
+            string csvfilename;
+
+            if (!String.IsNullOrEmpty(flowGroup))
+            {
+                flowName = flowName + "(" + flowGroup + ")";
+            }
+
+
+            if (appendGcFlowIdToCSVFileName)
+            {
+                flowName = flowName + "_" + flowId;
+
+            }
+
+            if (appendDatetime)
+            {
+                csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss_fff") + ".csv");
+
+            }
+            else
+            {
+                csvfilename = Path.Combine(currentPath, "csv", flowName + ".csv");
+                if (File.Exists(csvfilename))
+                {
+                    csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + flowId + ".csv");
+
+                }
+
+            }
+
+            int maxParentIdRef = FlowNodeList.Select(x => x.ParentId).ToList().OrderByDescending(x => x.Count()).Take(1).FirstOrDefault().Count();
+
+            // The file need to be UTF-8 without BOM
+            using (var streamWriter = new StreamWriter(csvfilename, false, Encoding.Default))
+
+            using (var csv = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+            {
+                int flowGroupCount = FlowNodeList.Where(x => x.Type == "Start" || x.Type == "Menu").Distinct().Count();
+                bool IsAlreadyWriteFlowGroupHeader = false;
+                List<GenesysCloudFlowNode> FlowNodeListGroupSorted = FlowNodeList.OrderBy(x => x.FlowGroup).ThenBy(x => x.Seq).ToList();
+
+
+                foreach (var node_i in FlowNodeListGroupSorted)
+                {
+                    if (node_i.Type == "Start" || node_i.Type == "Menu")
+                    {
+
+                        string flowGroupName = node_i.FlowGroup;
+
+                        foreach (char c in Path.GetInvalidFileNameChars())
+                        {
+                            flowGroupName = flowGroupName.Replace(c, '_');
+                        }
+
+                        flowGroupName = flowGroupName.Replace(' ', '_');
+
+                        if (!IsAlreadyWriteFlowGroupHeader)
+                        {
+
+                            csv.WriteField("## " + flowGroupName);
+                            csv.NextRecord();
+                            if (flowGroupCount == 1)
+                            {
+                                IsAlreadyWriteFlowGroupHeader = true;
+
+                            }
+                        }
+
+                        csv.WriteComment(" label: %type%<br>%desc1%<br>%desc2%");
+                        csv.NextRecord();
+                        csv.WriteComment(nodeStyle);
+                        csv.NextRecord();
+                        csv.WriteComment(" namespace: csvimport-");
+                        csv.NextRecord();
+
+                        // [C]2023/01/17 fixed
+                        if (maxParentIdRef == 0)
+                        {
+                            string connectMsg = " connect: {\"from\":\"refs" + maxParentIdRef.ToString() + "\", \"to\":\"id\", \"invert\":true, \"style\":" + "\"" + lineStyle + "\"" + "}";
+                            csv.WriteComment(connectMsg);
+                            csv.NextRecord();
+                        }
+                        else
+                        {
+                            for (int refi = 0; refi < maxParentIdRef; refi++)
+                            {
+                                string connectMsg = " connect: {\"from\":\"refs" + refi.ToString() + "\", \"to\":\"id\", \"invert\":true, \"style\":" + "\"" + lineStyle + "\"" + "}";
+                                csv.WriteComment(connectMsg);
+                                csv.NextRecord();
+
+                            }
+
+                        }
+
+                        csv.WriteComment(" width: auto");
+                        csv.NextRecord();
+                        csv.WriteComment(" height: auto");
+                        csv.NextRecord();
+                        csv.WriteComment(" padding: 15");
+                        csv.NextRecord();
+                        csv.WriteComment(" ignore: id,shape,fill,stroke,refs");
+                        csv.NextRecord();
+                        csv.WriteComment(" nodespacing: " + nodespacing);
+                        csv.NextRecord();
+                        csv.WriteComment(" levelspacing: " + levelspacing);
+                        csv.NextRecord();
+                        csv.WriteComment(" edgespacing: 40");
+                        csv.NextRecord();
+                        csv.WriteComment(" layout: verticalflow");
+                        csv.NextRecord();
+
+                        csv.WriteField("id");
+                        csv.WriteField("type");
+                        csv.WriteField("desc1");
+                        csv.WriteField("desc2");
+                        csv.WriteField("fill");
+                        csv.WriteField("stroke");
+                        csv.WriteField("shape");
+
+                        for (int mi = 0; mi < maxParentIdRef; mi++)
+                        {
+                            string connectMsg = "refs" + mi.ToString();
+                            csv.WriteField(connectMsg);
+
+                        }
+
+                        csv.NextRecord();
+
+                    }
+
+                    // id
+                    csv.WriteField(node_i.Id);
+                    csv.WriteField(node_i.Type);
+                    //desc1
+                    csv.WriteField(removeDoubleQuotation(node_i.Name));
+
+                    // Show id in flow For Debug
+                    if (debug)
+                    {
+                        var debug1 = node_i.Id;
+                        string debug2 = null;
+
+                        if (node_i.NextAction != null && node_i.NextAction.Length > 0)
+                        {
+                            debug2 = node_i.NextAction;
+
+                        }
+                        else
+                        {
+                            debug2 = "Unknown";
+
+                        }
+
+                        var debug3 = debug1 + " =><br>" + debug2;
+                        csv.WriteField(debug3);
+
+                    }
+                    else
+                    {
+                        // desc2
+                        string desc2 = node_i.Desc2;
+                        if (replaceSpecialCharacter)
+                        {
+                            desc2 = replaceSpecialCharacters(node_i.Desc2);
+
+                        }
+
+                        desc2 = trancateDescription(desc2, maxSecondDescriptionLengh);
+                        csv.WriteField(desc2); //QueueTo Skill etc...
+                    }
+
+                    string[] shapeStyle = getShapeStyle(node_i.Type, conditionList);
+                    csv.WriteField(shapeStyle[0]); // fill
+                    csv.WriteField(shapeStyle[1]); //stroke
+                    csv.WriteField(shapeStyle[2]); //shape
+                    //ref
+                    int i = 0;
+                    foreach (var pId in node_i.ParentId)
+                    {
+
+                        csv.WriteField(pId);
+                        i++;
+                    }
+                    for (int j = i; j < maxParentIdRef; j++)
+                    {
+                        csv.WriteField(null);
+
+                    }
+
+                    csv.NextRecord();
+
+                }
+
+            }
+
+            return csvfilename;
+
+        }
+
 
         internal static void CreatePDListCSVGenCloud(List<GenesysCloudParticipantData> gcPDList)
         {
