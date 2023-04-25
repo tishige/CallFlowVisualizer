@@ -2141,6 +2141,10 @@ namespace CallFlowVisualizer
         private static string CreateVariableDescriotions(List<JToken> variablesList,int maxSecondDescriptionLengh,string type)
         {
             int expCount = variablesList.Count();
+
+            //[A]20230425
+            if (expCount == 0) return null;
+
             string br = "<br>";
             string cologne = ":";
             string equal = "=";
