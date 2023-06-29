@@ -8,6 +8,7 @@ using ShellProgressBar;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Extensions.Configuration;
+using PureCloudPlatform.Client.V2.Model;
 
 namespace CallFlowVisualizer
 {
@@ -21,7 +22,7 @@ namespace CallFlowVisualizer
             bool convertToPng = false;
             bool disableAcceleration=false;
             int maxSecondDescriptionLengh = 50;
-
+            List<string> flowTypeList = new();
             try
             {
                 var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
@@ -29,6 +30,8 @@ namespace CallFlowVisualizer
                 convertToPng = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().ConvertToPng;
                 disableAcceleration = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().DisableAcceleration;
                 maxSecondDescriptionLengh = configRoot.GetSection("cfvSettings").Get<CfvSettings>().MaxSecondDescriptionLengh;
+
+                flowTypeList = configRoot.GetSection("cfvSettings").Get<CfvSettings>().flowTypeList;
 
 
             }
@@ -71,6 +74,14 @@ namespace CallFlowVisualizer
 
                     }
 
+                    // [ADD] 2023/06/29
+                    if (opt.Filename != null && opt.flowName != null)
+                    {
+                        ColorConsole.WriteError("Enclose flow name in double quotation marks.");
+                        PrintUsage();
+
+                    }
+
                     if (opt.drawio || opt.visio || opt.png)
                     {
                         Process[] processes = Process.GetProcessesByName("draw.io");
@@ -104,10 +115,28 @@ namespace CallFlowVisualizer
 
                     }
 
-                    if (opt.flowId != null && args != null)
+                    if ((opt.flowId != null || opt.flowName != null) && args != null)
                     {
                         Regex regEx = new Regex(@"(^([0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12})$)");
-                        if (regEx.Match(opt.flowId).Success || opt.flowId == "all")
+
+                        if(opt.flowName != null && opt.flowId != null)
+                        {
+                            ColorConsole.WriteError($"Set either Architect's flow ID or flow Name.");
+                            PrintUsage();
+                        }
+
+                        IEnumerable<string> notContained = opt.flowType.Except(flowTypeList);
+
+                        // [ADD] 2023/06/29
+                        if (opt.flowType != null && notContained.Any()) 
+                        {
+                            var notContainedValue = String.Join(",",notContained.ToArray());
+                            ColorConsole.WriteError($"Incorrect flow type [{notContainedValue}].");
+                            PrintUsage();
+                        }
+
+
+                        if ((opt.flowId!=null && regEx.Match(opt.flowId).Success) || opt.flowId == "all" || opt.flowName!=null)
                         {
                             mode = "FetchFromGenesysCloud";
                             break;
@@ -116,6 +145,7 @@ namespace CallFlowVisualizer
                         {
                             ColorConsole.WriteError($"Argument is not a GUID format. {opt.flowId} Set Architect's flow ID.");
                             PrintUsage();
+
                         }
 
                     }
@@ -188,7 +218,17 @@ namespace CallFlowVisualizer
                 case "FetchFromGenesysCloud":
 
                     FetchGCAccessToken.GetAccessToken(opt.profile);
-                    jsonFileList = FetchFlows.CreateArchitectJSONFile(opt.flowId);
+                    // [ADD] 2023/06/29
+                    if (opt.flowId != null)
+                    {
+                        jsonFileList = FetchFlows.CreateArchitectJSONFile(opt.flowId,opt.flowType);
+
+                    }
+                    else
+                    {
+                        jsonFileList = FetchFlows.CreateArchitectJSONFileWithName(opt.flowName, opt.flowType);
+
+                    }
                     csvFileResultList = GcJSONtoCSV.gcJsonToCSV(jsonFileList, opt);
                     jsonFileListPD = jsonFileList;
 
@@ -237,11 +277,15 @@ namespace CallFlowVisualizer
             sb.AppendLine();
             sb.AppendLine("Options:");
             sb.AppendLine(@"  -d --drawio    Call .\drawio\draw.io.exe for CallFlowVisualizer after creating CSV files.");
-            sb.AppendLine(@"  -f --fetch     Fetch latest Architect flow from GenesysCloud and Create CSV files for drawio.");
+            sb.AppendLine(@"  -f --fetch     Fetch latest Architect flow of specified flowID from GenesysCloud and Create CSV files for drawio.");
+            sb.AppendLine(@"  -n --name      Fetch latest Architect flow of specified flowName from GenesysCloud and Create CSV files for drawio.");
+            sb.AppendLine(@"  -t --type      Fetch latest Architect flow of specified flowType from GenesysCloud and Create CSV files for drawio.");
+            sb.AppendLine(@"                 bot,commonmodule,digitalbot,inboundcall,inboundchat,inboundemail,inboundshortmessage,outboundcall");
+            sb.AppendLine(@"                 inqueuecall,inqueueemail,inqueueshortmessage,speech,securecall,surveyinvite,voice,voicemail,workflow,workitem");
             sb.AppendLine(@"  -a --architect Create CSV files for json files in .\Architect folder.");
             sb.AppendLine(@"  -p --profile   [PROFILE NAME] Change GenesysCloud organization.Use [default] if not specified.");
             sb.AppendLine(@"  -v --visio     Convert to visio file after creating drawio files");
-            sb.AppendLine(@"  -n --png       Convert to png file after creating drawio files");
+            sb.AppendLine(@"  -g --png       Convert to png file after creating drawio files");
             sb.AppendLine(@"  -l --list      Create Participant Data CSV list");
             sb.AppendLine(@"  --help         Show this screen.");
             sb.AppendLine(@"  --version      Show version.");
@@ -253,6 +297,7 @@ namespace CallFlowVisualizer
             sb.AppendLine("  CallFlowVisualizer.exe GCSampleFlow.json -d");
             sb.AppendLine("  CallFlowVisualizer.exe -f all");
             sb.AppendLine("  CallFlowVisualizer.exe -f 3a3d264a-978e-4a1d-abc9-e1f76c556f1a -v -p prod-org");
+            sb.AppendLine("  CallFlowVisualizer.exe -n MarketingDev -t call -v -p prod-org");
             sb.AppendLine();
 
             Console.Out.Write(sb.ToString());

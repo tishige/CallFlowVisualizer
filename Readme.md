@@ -92,11 +92,13 @@ _Note: Replace sample values for org name, flowID and flow name with your actual
 | -------- | --------------------------------------------------------------------------------------- |
 | -d       | Create draw.io file                                                                     |
 | -v       | Create draw.io, then convert to Visio format                                            |
-| -n       | Create draw.io, then convert to png format                                              |
+| -g       | Create draw.io, then convert to png format                                              |
 | -f       | Fetch latest flows from GenesysCloud                                                    |
 | -a       | Load all JSON files in Architect folder                                                 |
 | -p       | Organization name <br>If you omit this argument , [default] in config.toml will be used |
 | -l       | Create Genesys Cloud Participant Data List as PDList_YYYYMMDD-hhmmss.csv                |
+| -n       | Fetch latest flows with flowName from GenesysCloud                                      |
+| -t       | Fetch latest flows with flowType from GenesysCloud                                      |
 
 ## 5. Customize file format and style
 

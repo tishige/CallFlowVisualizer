@@ -35,6 +35,7 @@ namespace CallFlowVisualizer
         public int MaxSecondDescriptionLengh { get; set; }
         public bool ShowExpression { get; set; }
         public bool CreatePagePerReusabletask { get;set; }
+        public List<string> flowTypeList { get; set; }
 
 
     }
