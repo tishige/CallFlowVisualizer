@@ -79,8 +79,10 @@ You should install official draw.io desktop app or use Visio.
 
 _Note: Replace sample values for org name, flowID and flow name with your actual values._
 
-- Fetch all flows from a Genesys Cloud organization
-  <br>`CallFlowVisualizer.exe -f all -p YourOrgName`
+- Fetch all inbound call flows from a Genesys Cloud organization
+  <br>`CallFlowVisualizer.exe -f all -t inboundcall -p YourOrgName`
+- Specify flowName in organization YourOrgName and save as png format
+  <br>`CallFlowVisualizer.exe -n MarketingDev -g -p YourOrgName`
 - Specify flowID in organization YourOrgName and save as Visio format
   <br>`CallFlowVisualizer.exe -f 31942f02-e8c6-46cc-8bed-63967548a8fa -v -p YourOrgName`
 - Specify JSON file in c:\temp
