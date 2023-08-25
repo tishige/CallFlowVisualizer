@@ -55,6 +55,9 @@ You should install official draw.io desktop app or use Visio.
 3. Download the latest binary from [Releases](https://github.com/tishige/CallFlowVisualizer/releases) page
 4. Create CallFlowVisualizer folder
 5. Unzip CallFlowVisualizer.ZIP to CallFlowVisualizer folder
+   Please note that for installation, do not unzip the CallFlowVisualizer.ZIP to a path containing spaces.
+   The conversion to draw.io file format is currently not functioning correctly.
+
 6. Create or Copy a ClientID and Client Secret of Client Credentials in Genesys Cloud. Required permission is Architect>Flow>View
 7. Replace ClientID and Client Secret with your actual values in .\config.toml or specify the file path of existing config.toml in appsettings.json<br>`"gcProfileFileName": "C:\\Users\\YourUserName\\.gc\\config.toml",`
 
