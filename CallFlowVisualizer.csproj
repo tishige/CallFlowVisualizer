@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	  <Version>1.4.0</Version>
+	  <Version>1.4.2</Version>
     <Nullable>disable</Nullable>
     <Company>tishige</Company>
     <Copyright>tishige</Copyright>

@@ -412,6 +412,12 @@ namespace CallFlowVisualizer
                         }
                         break;
 
+                    case "CallCommonModuleAction":
+                        string flowName = (string)action_i["flowName"] ?? (string)action_i["flowName"];
+                        string version = (string)action_i["flowVersion"] ?? (string)action_i["flowVersion"];
+                        flowNode.Desc2 = flowName + "(" + version + ")";
+                        break;
+
 
                     default:
 
