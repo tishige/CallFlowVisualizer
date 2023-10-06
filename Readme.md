@@ -58,7 +58,7 @@ You should install official draw.io desktop app or use Visio.
    Please note that for installation, do not unzip the CallFlowVisualizer.ZIP to a path containing spaces.
    The conversion to draw.io file format is currently not functioning correctly.
 
-6. Create or Copy a ClientID and Client Secret of Client Credentials in Genesys Cloud. Required permission is Architect>Flow>View
+6. Create or Copy a ClientID and Client Secret of Client Credentials in Genesys Cloud. Required permission is Architect>Flow>View and Architect>User Prompt>View (if showPromptDetail is set to true)
 7. Replace ClientID and Client Secret with your actual values in .\config.toml or specify the file path of existing config.toml in appsettings.json<br>`"gcProfileFileName": "C:\\Users\\YourUserName\\.gc\\config.toml",`
 
 ## 4. How to use
@@ -125,6 +125,8 @@ Change config values in appsettings.json
 | maxSecondDescriptionLengh  | Max second description length                                         | 1024    |
 | showExpression             | Show expression for UpdateVariableAction / Get/SetAttributesAction    | true    |
 | createPagePerReusabletask  | Create a separate page in draw.io for each Re-usable Task flow        | true    |
+| showPromptDetail           | Show Prompt detail                                                    | true    |
+
 
 
 ## 6. TIPS

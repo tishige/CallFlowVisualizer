@@ -27,6 +27,8 @@ namespace CallFlowVisualizer
         internal string Digit { get; set; } = null!;
         internal string AudioFile { get; set; } = null!;
         internal string FlowGroup { get; set; } = null!;
+        internal List<string> AudioMetaData { get; set; } = new List<string>();
 
     }
 }
+

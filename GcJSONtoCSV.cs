@@ -28,12 +28,16 @@ namespace CallFlowVisualizer
             bool createFlowPerReusabletask = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFlowPerReusabletask;
             bool createPagePerReusabletask = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreatePagePerReusabletask;
 
+            // v1.5.0
+            bool showExpression = configRoot.GetSection("cfvSettings").Get<CfvSettings>().ShowExpression;
+            bool showPromptDetail = configRoot.GetSection("cfvSettings").Get<CfvSettings>().ShowPromptDetail;
+
 
             List<string> csvFileResultList = new();
 
             Console.WriteLine();
             ColorConsole.WriteLine("Creating CSV file for GenesysCloud", ConsoleColor.Yellow);
-
+            
             var pboptions = new ProgressBarOptions
             {
                 ProgressCharacter = '─',
@@ -46,6 +50,13 @@ namespace CallFlowVisualizer
             {
 
                 List<GenesysCloudFlowNode> flowNodesList = CollectGCValuesFromJSON.CollectNode(jsonFilePath_i);
+
+                if(showPromptDetail)
+                {
+                    flowNodesList = FetchAudioPrompt.FetchPromptDescription(flowNodesList,opt);
+
+                }
+
 
                 var json = File.ReadAllText(jsonFilePath_i);
                 JObject result;

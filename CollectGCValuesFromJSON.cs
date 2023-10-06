@@ -363,9 +363,85 @@ namespace CallFlowVisualizer
                         if (match.Success)
                         {
                             flowNode.Desc2 = match.Groups[2].Value.ToString();
+
+                            //v1.5.0
+                            //JArray audioMetadata = (JArray)action_i["prompts"]["defaultAudio"]["metaData"]["references"];
+
+                            //if (audioMetadata != null)
+                            //{
+                            //    foreach (var audioMetadata_each in audioMetadata)
+                            //    {
+                            //        List<string> audioName = new List<string>();
+                            //        flowNode.AudioMetaData.Add(audioMetadata_each["name"].ToString());
+                            //    }
+                            //}
+
+                            JArray audioMetadata = (JArray)action_i["prompts"]["defaultAudio"]["uiMetaData"]["sequenceItems"];
+
+                            if (audioMetadata != null)
+                            {
+                                foreach (var audioMetadata_each in audioMetadata)
+                                {
+                                    List<string> audioName = new List<string>();
+                                    string type = audioMetadata_each["type"].ToString();
+
+                                    switch (type)
+                                    {
+                                        //TTS
+                                        case "0":
+                                            string parameter = "TTS "+audioMetadata_each["parameter"].ToString();
+                                            flowNode.AudioMetaData.Add(parameter);
+
+                                            break;
+                                        
+                                        //Prompt
+                                        case "1":
+                                            flowNode.AudioMetaData.Add(audioMetadata_each["name"].ToString());
+                                            break;
+
+                                        //Blank
+                                        case "4":
+
+                                            parameter = audioMetadata_each["parameter"].ToString();
+                                            string secResult = "";
+
+                                            if (parameter.Length == 3)
+                                            {
+                                                secResult = parameter + " ms";
+                                            }
+                                            else if (parameter.Length == 4)
+                                            {
+                                                int parameterValue = int.Parse(parameter);
+                                                if (parameterValue == 1000)
+                                                {
+                                                    secResult = "1 second";
+                                                }
+                                                else if (parameterValue > 1000)
+                                                {
+                                                    secResult = (parameterValue / 1000.0).ToString() + " seconds";
+                                                }
+                                            }
+
+                                            secResult = "Blank " + secResult;
+
+                                            flowNode.AudioMetaData.Add(secResult);
+                                            break;
+
+
+
+                                        default:
+                                            break;
+                                    }
+                                    
+                                }
+                            }
+
+
+
                         }
                         else
                         {
+                         
                             flowNode.Desc2 = audioText;
                         }
 
@@ -412,11 +488,17 @@ namespace CallFlowVisualizer
                         }
                         break;
 
+                    // v1.4.2
                     case "CallCommonModuleAction":
                         string flowName = (string)action_i["flowName"] ?? (string)action_i["flowName"];
                         string version = (string)action_i["flowVersion"] ?? (string)action_i["flowVersion"];
-                        flowNode.Desc2 = flowName + "(" + version + ")";
+                        flowNode.Desc2 = flowName+"(" + version+")";
                         break;
+                    // v1.4.3
+                    case "ScreenPopAction":
+                        flowNode.Desc2 = (string)action_i["inputs"][0]["value"]["text"] ?? (string)action_i["inputs"][0]["value"]["text"];
+                        break;
+
 
 
                     default:
@@ -2156,6 +2238,12 @@ namespace CallFlowVisualizer
             string equal = "=";
             int eachLinePaddingLength = expCount.ToString().Length + br.Length + cologne.Length+equal.Length;
             int maxDescLengthEachLine = (maxSecondDescriptionLengh / expCount) - eachLinePaddingLength;
+
+            // v1.5 avoid error set maxDescLengthEachLine=10  result -4
+            if (maxDescLengthEachLine<0)
+            {
+                maxDescLengthEachLine = 1;
+            }
 
             string result=null;
 
