@@ -234,6 +234,8 @@ namespace CallFlowVisualizer
 
             using (var csv = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
             {
+                //[ADD] 2024/02/05
+                flowGroupName=replaceCommaToPeriod(flowGroupName);
                 csv.WriteField("## "+flowGroupName);
                 csv.NextRecord();
                 csv.WriteComment(" label: %type%<br>%desc1%<br>%desc2%");
@@ -452,8 +454,10 @@ namespace CallFlowVisualizer
 
                         if (!IsAlreadyWriteFlowGroupHeader)
                         {
+							//[ADD] 2024/02/05
+							flowGroupName = replaceCommaToPeriod(flowGroupName);
 
-                            csv.WriteField("## " + flowGroupName);
+							csv.WriteField("## " + flowGroupName);
                             csv.NextRecord();
                             if (flowGroupCount == 1)
                             {
@@ -754,7 +758,20 @@ namespace CallFlowVisualizer
             return str;
         }
 
-        private static string toStrJumpToNode(List<string> jumpToNodes)
+        // Replace , to . in Flow name
+		private static string replaceCommaToPeriod(string str)
+		{
+			if (str == null)
+			{
+				return null;
+
+			}
+
+			return str.Replace(",", ".");
+		}
+
+		// Remove "" in name field for CSV
+		private static string toStrJumpToNode(List<string> jumpToNodes)
         {
             string jumpToNode = "";
             if (jumpToNodes == null) return jumpToNode;
