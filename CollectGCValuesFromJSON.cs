@@ -498,10 +498,37 @@ namespace CallFlowVisualizer
                     case "ScreenPopAction":
                         flowNode.Desc2 = (string)action_i["inputs"][0]["value"]["text"] ?? (string)action_i["inputs"][0]["value"]["text"];
                         break;
+                    // v1.6.0
+					case "EvaluateScheduleAction":
+						string evaluateEmergencyGroup = (string)action_i["evaluateEmergencyGroup"] ?? (string)action_i["evaluateEmergencyGroup"];
+
+						string evaluateNow = (string)action_i["evaluateNow"] ?? (string)action_i["evaluateNow"];
+						string scheduleName= (string)action_i["schedule"]["text"] ?? (string)action_i["schedule"]["text"];
+                        string timeZone = (string)action_i["timeZone"]["text"] ?? (string)action_i["timeZone"]["text"];
+                        string evaluationDateTime = (string)action_i["evaluationDateTime"]["text"] ?? (string)action_i["evaluationDateTime"]["text"];
+						string emergencyGroup = (string)action_i["emergencyGroup"]["text"] ?? (string)action_i["emergencyGroup"]["text"];
 
 
+						if (evaluateEmergencyGroup == "False")
+                        {
+							flowNode.Desc2 = "Schedule:" + scheduleName + "<br>";
+							if (evaluationDateTime != null && evaluateNow == "False")
+							{
+								flowNode.Desc2 = flowNode.Desc2 + "Specific:" + evaluationDateTime + "<br>";
+							}
+							flowNode.Desc2 = flowNode.Desc2 + "Time Zone:" + timeZone;
 
-                    default:
+                        }
+                        else
+                        {
+							flowNode.Desc2 = "Emergency Group:" + emergencyGroup;
+						}
+
+
+						break;
+
+
+					default:
 
                         break;
                 }

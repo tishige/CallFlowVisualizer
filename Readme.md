@@ -23,7 +23,7 @@ Create flowcharts of Genesys PureConnect or Genesys Cloud interaction flows with
 - There are 3 ways to create flowcharts:
 
   1.  Fetch all Architect flows from Genesys Cloud.
-  2.  Specify a specific flowID and fetch from Genesys Cloud.
+  2.  Specify a specific flowID or flowName and fetch from Genesys Cloud.
   3.  Specify JSON file of /api/v2/flows/{flowId} result.
 
 ### 2.2 Create CSV file for draw.io
