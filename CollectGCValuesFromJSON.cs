@@ -384,19 +384,28 @@ namespace CallFlowVisualizer
                                 {
                                     List<string> audioName = new List<string>();
                                     string type = audioMetadata_each["type"].ToString();
+                                    string parameter = "";
 
-                                    switch (type)
+									switch (type)
                                     {
-                                        //TTS
-                                        case "0":
-                                            string parameter = "TTS "+audioMetadata_each["parameter"].ToString();
-                                            flowNode.AudioMetaData.Add(parameter);
+										//TTS
+										case "0":
+											//2024.4.16 fixed
+											if (audioMetadata_each["parameter"] != null)
+											{
+												parameter = "TTS " + audioMetadata_each["parameter"].ToString();
+												flowNode.AudioMetaData.Add(parameter);
+											}
 
                                             break;
                                         
                                         //Prompt
                                         case "1":
-                                            flowNode.AudioMetaData.Add(audioMetadata_each["name"].ToString());
+											//2024.4.16 fixed
+											if (audioMetadata_each["name"] != null)
+											{
+												flowNode.AudioMetaData.Add(audioMetadata_each["name"].ToString());
+											}
                                             break;
 
                                         //Blank
