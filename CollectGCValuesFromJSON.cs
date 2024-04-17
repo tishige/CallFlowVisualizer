@@ -505,8 +505,20 @@ namespace CallFlowVisualizer
                         break;
                     // v1.4.3
                     case "ScreenPopAction":
-                        flowNode.Desc2 = (string)action_i["inputs"][0]["value"]["text"] ?? (string)action_i["inputs"][0]["value"]["text"];
-                        break;
+
+                        //2024.4.17 fixed
+						if (action_i["inputs"].Count() > 0 && action_i["inputs"][0]["value"] != null && action_i["inputs"][0]["value"]["text"] != null)
+						{
+							flowNode.Desc2 = (string)action_i["inputs"][0]["value"]["text"];
+						}
+						else
+						{
+							flowNode.Desc2 = String.Empty;
+						}
+
+
+
+						break;
                     // v1.6.0
 					case "EvaluateScheduleAction":
 						string evaluateEmergencyGroup = (string)action_i["evaluateEmergencyGroup"] ?? (string)action_i["evaluateEmergencyGroup"];
