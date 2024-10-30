@@ -109,25 +109,31 @@ _Note: Replace sample values for org name, flowID and flow name with your actual
 
 Change config values in appsettings.json
 
-| Variables                  | Description                                                           | Default |
-| -------------------------- | --------------------------------------------------------------------- | ------- |
-| appendDateTimeToFileName   | Append dateTime value to fileName                                     | false   |
-| appendGcFlowIdToFileName   | Append GenesysCloud flowId to fileName                                | false   |
-| appendGcFlowTypeToFileName | Append GenesysCloud flowType to fileName e.g. InboundCall,InQueueCall | true    |
-| appendGcOrgNameToFileName  | Append organization name to fileName                                  | true    |
-| colorNode                  | Paint shapes                                                          | true    |
-| nodeRound                  | Draw rounded shapes                                                   | false   |
-| lineRound                  | Draw rounded lines                                                    | true    |
-| convertToVisio             | Always convert to Visio format without specifying -v option           | false   |
-| convertToPng               | Always convert to png format without specifying -n option             | true    |
-| createParticipantDataList  | Always create Genesys Cloud Participant Data List                     | true    |
-| createflowPerReusabletask  | Create draw.io flow files per Re-usable Task                          | false   |
-| maxSecondDescriptionLengh  | Max second description length                                         | 1024    |
-| showExpression             | Show expression for UpdateVariableAction / Get/SetAttributesAction    | true    |
-| createPagePerReusabletask  | Create a separate page in draw.io for each Re-usable Task flow        | true    |
-| showPromptDetail           | Show Prompt detail                                                    | true    |
-
-
+| Variables                        | Description                                                           | Default |
+| -------------------------------- | --------------------------------------------------------------------- | ------- |
+| appendDateTimeToFileName         | Append dateTime value to fileName                                     | false   |
+| appendGcFlowIdToFileName         | Append GenesysCloud flowId to fileName                                | false   |
+| appendGcFlowTypeToFileName       | Append GenesysCloud flowType to fileName e.g. InboundCall,InQueueCall | true    |
+| appendGcOrgNameToFileName        | Append organization name to fileName                                  | true    |
+| colorNode                        | Paint shapes                                                          | true    |
+| nodeRound                        | Draw rounded shapes                                                   | false   |
+| lineRound                        | Draw rounded lines                                                    | true    |
+| convertToVisio                   | Always convert to Visio format without specifying -v option           | false   |
+| convertToPng                     | Always convert to png format without specifying -n option             | true    |
+| createParticipantDataList        | Always create Genesys Cloud Participant Data List                     | true    |
+| createflowPerReusabletask        | Create draw.io flow files per Re-usable Task                          | false   |
+| maxSecondDescriptionLengh        | Max second description length                                         | 1024    |
+| showExpression                   | Show expression for UpdateVariableAction / Get/SetAttributesAction    | true    |
+| createPagePerReusabletask        | Create a separate page in draw.io for each Re-usable Task flow        | true    |
+| showPromptDetail                 | Show Prompt detail                                                    | true    |
+| endpoint                         | GenesysCloud endpoint                                                 |         |
+|                                  | Set the GenC Endpoint if your org utilizes any of the following URLs. |         |
+|                                  | https://api.mypurecloud.com.au (ap_southeast_2)                       |         |
+|                                  | https://api.mec1.pure.cloud                                           |         |
+|                                  | https://api.apne3.pure.cloud                                          |         |
+|                                  | https://api.euc2.pure.cloud                                           |         |
+| createFolderWithOrganizationName | Create folder with orgnization name                                   | false   |
+| folderNameDateFormat             | Create folder with orgnization name_currentDate                       | MMddyyyy|
 
 ## 6. TIPS
 
