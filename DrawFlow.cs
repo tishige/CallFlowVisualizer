@@ -8,12 +8,49 @@ namespace CallFlowVisualizer
 {
     internal class DrawFlow
     {
-        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png,bool disableAcceleration)
+        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png,bool disableAcceleration,string gcProfileName)
         {
-            ColorConsole.WriteLine($"Creating drawio diagram", ConsoleColor.Yellow);
+
+			ColorConsole.WriteLine($"Creating drawio diagram", ConsoleColor.Yellow);
             string currentPath = Directory.GetCurrentDirectory();
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			//[ADD] 2024/10/27
+			var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
+			int maxRetryCount = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().MaxRetryCount;
+
+			bool createFolderWithOrganizationName = false;
+			string folderNameDateFormat = null;
+			createFolderWithOrganizationName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFolderWithOrganizationName;
+			folderNameDateFormat = configRoot.GetSection("cfvSettings").Get<CfvSettings>().FolderNameDateFormat;
+			string orgDIRpath = null;
+
+			if (createFolderWithOrganizationName)
+			{
+				if (gcProfileName == "default")
+				{
+					orgDIRpath = FetchFlows.FetchOrgName();
+				}
+				else
+				{
+					orgDIRpath = gcProfileName;
+				}
+
+
+				if (!String.IsNullOrEmpty(folderNameDateFormat))
+				{
+					orgDIRpath = orgDIRpath + "_" + DateTime.Now.ToString(folderNameDateFormat);
+				}
+
+
+				foreach (char c in Path.GetInvalidFileNameChars())
+				{
+
+					orgDIRpath = orgDIRpath.Replace(c, '_');
+				}
+
+			}
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 if (!File.Exists(Path.Combine(currentPath, "drawio", "draw.io.app", "Contents/MacOS/draw.io")))
                 {
@@ -62,10 +99,21 @@ namespace CallFlowVisualizer
 
             }
 
-            // CSV file exists?
-            var csvFiles = Directory.GetFiles(Path.Combine(currentPath, "csv"), "*.csv");
+			// CSV file exists?
+			//[ADD] 2024/10/28
+			string[] csvFiles;
+			if (createFolderWithOrganizationName)
+            {
+				csvFiles = Directory.GetFiles(Path.Combine(currentPath, "csv", orgDIRpath), "*.csv");
 
-            if (csvFiles.Length == 0)
+			}
+			else
+            {
+				csvFiles = Directory.GetFiles(Path.Combine(currentPath, "csv"), "*.csv");
+
+			}
+
+			if (csvFiles.Length == 0)
             {
                 ColorConsole.WriteError(@"CSV files does not exites.Load JSON or XML files or fetch architect files.");
                 Environment.Exit(1);
@@ -81,10 +129,8 @@ namespace CallFlowVisualizer
 
             var drawpb = new ProgressBar(csvFileResultList.Count(), "Drawing flow", pboptions);
 
-            var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
-            int maxRetryCount = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().MaxRetryCount;
 
-            foreach (var csvFile_i in csvFileResultList)
+			foreach (var csvFile_i in csvFileResultList)
             {
 
                 startInfo = new ProcessStartInfo();
@@ -100,25 +146,39 @@ namespace CallFlowVisualizer
 
                 }
 
-                //20230319 --disable-acceleration
+				//20230319 --disable-acceleration
+                //[MOD] 2024/10/27
+				//if (disableAcceleration)
+				//{
+				//    startInfo.Arguments = "-i " + csvFile_i + " --disable-acceleration";
 
-                if (disableAcceleration)
-                {
-                    startInfo.Arguments = "-i " + csvFile_i + " --disable-acceleration";
+				//}
+				//else
+				//{
+				//    startInfo.Arguments = "-i " + csvFile_i;
 
-                }
-                else
-                {
-                    startInfo.Arguments = "-i " + csvFile_i;
+				//}
 
-                }
+                //[ADD] 2024/10/27
+				string arguments = "-i " + csvFile_i;
 
+				if (createFolderWithOrganizationName)
+				{
+					arguments += " -d " + orgDIRpath;
+				}
 
-                drawpb.Tick(csvFile_i);
+				if (disableAcceleration)
+				{
+					arguments += " --disable-acceleration";
+				}
+
+				startInfo.Arguments = arguments;
+
+				drawpb.Tick(csvFile_i);
                 p = Process.Start(startInfo);
                 p.WaitForExit();
 
-                if (IsDrawioFileSizeZero(currentPath, csvFile_i))
+                if (IsDrawioFileSizeZero(currentPath, csvFile_i, createFolderWithOrganizationName, orgDIRpath))
                 {
                     while (true)
                     {
@@ -126,7 +186,7 @@ namespace CallFlowVisualizer
                         p = Process.Start(startInfo);
                         p.WaitForExit();
 
-                        if (!IsDrawioFileSizeZero(currentPath, csvFile_i))
+                        if (!IsDrawioFileSizeZero(currentPath, csvFile_i, createFolderWithOrganizationName, orgDIRpath))
                         {
                             break;
 
@@ -147,23 +207,45 @@ namespace CallFlowVisualizer
 
             }
 
-            Console.WriteLine();
+			Console.WriteLine();
 
-            // Convert to visio
-            if (visio)
+			// Convert to visio
+			if (visio)
             {
-                ColorConsole.WriteLine("Convert to VISIO", ConsoleColor.Yellow);
+
+				ColorConsole.WriteLine("Convert to VISIO", ConsoleColor.Yellow);
                 var visiopb = new ProgressBar(csvFileResultList.Count(), "Convert to VISIO", pboptions);
 
                 if (!Directory.Exists(Path.Combine(currentPath, "visio")))
                     Directory.CreateDirectory(Path.Combine(currentPath, "visio"));
 
-                foreach (var csvFile_i in csvFileResultList)
+				if (createFolderWithOrganizationName)
+				{
+
+					if (!Directory.Exists(Path.Combine(currentPath, "visio",orgDIRpath)))
+						Directory.CreateDirectory(Path.Combine(currentPath, "visio",orgDIRpath));
+
+				}
+
+				foreach (var csvFile_i in csvFileResultList)
                 {
 
                     string drawioFile = Path.ChangeExtension(Path.GetFileName(csvFile_i), ".drawio");
-                    drawioFile = Path.Combine(currentPath, "flow", drawioFile);
-                    string outPutFolder = Path.Combine(currentPath, "visio");
+
+					string outPutFolder;
+
+					if (createFolderWithOrganizationName)
+					{
+
+						drawioFile = Path.Combine(currentPath, "flow",orgDIRpath, drawioFile);
+						outPutFolder = Path.Combine(currentPath, "visio",orgDIRpath);
+
+					}
+                    else
+                    {
+						drawioFile = Path.Combine(currentPath, "flow", drawioFile);
+						outPutFolder = Path.Combine(currentPath, "visio");
+					}
 
                     startInfo = new ProcessStartInfo();
 
@@ -188,8 +270,6 @@ namespace CallFlowVisualizer
 
                     }
 
-
-
                     visiopb.Tick(drawioFile);
                     p = Process.Start(startInfo);
                     p.WaitForExit();
@@ -203,20 +283,41 @@ namespace CallFlowVisualizer
             // Convert to png
             if (png)
             {
-                ColorConsole.WriteLine("Convert to png", ConsoleColor.Yellow);
+				ColorConsole.WriteLine("Convert to png", ConsoleColor.Yellow);
                 var pngpb = new ProgressBar(csvFileResultList.Count(), "Convert to png", pboptions);
 
                 if (!Directory.Exists(Path.Combine(currentPath, "png")))
                     Directory.CreateDirectory(Path.Combine(currentPath, "png"));
 
-                foreach (var csvFile_i in csvFileResultList)
+				if (createFolderWithOrganizationName)
+				{
+
+					if (!Directory.Exists(Path.Combine(currentPath, "png", orgDIRpath)))
+						Directory.CreateDirectory(Path.Combine(currentPath, "png", orgDIRpath));
+
+				}
+
+				foreach (var csvFile_i in csvFileResultList)
                 {
 
                     string drawioFile = Path.ChangeExtension(Path.GetFileName(csvFile_i), ".drawio");
-                    drawioFile = Path.Combine(currentPath, "flow", drawioFile);
-                    string outPutFolder = Path.Combine(currentPath, "png");
+                    //drawioFile = Path.Combine(currentPath, "flow", drawioFile);
+                    string outPutFolder;
 
-                    startInfo = new ProcessStartInfo();
+					if (createFolderWithOrganizationName)
+					{
+
+						drawioFile = Path.Combine(currentPath, "flow", orgDIRpath, drawioFile);
+						outPutFolder = Path.Combine(currentPath, "png", orgDIRpath);
+
+					}
+					else
+					{
+						drawioFile = Path.Combine(currentPath, "flow", drawioFile);
+						outPutFolder = Path.Combine(currentPath, "png");
+					}
+
+					startInfo = new ProcessStartInfo();
 
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                     {
@@ -257,10 +358,23 @@ namespace CallFlowVisualizer
         /// <param name="currentPath"></param>
         /// <param name="csvfileName"></param>
         /// <returns></returns>
-        private static bool IsDrawioFileSizeZero(string currentPath, string csvfileName)
+        private static bool IsDrawioFileSizeZero(string currentPath, string csvfileName,bool createFolderWithOrganizationName,string orgDIRpath)
         {
-            FileInfo file = new FileInfo(Path.Combine(currentPath, "flow", Path.GetFileNameWithoutExtension(csvfileName) + ".drawio"));
-            try
+            //[ADD] 2024/10/28
+            FileInfo file;
+            if (createFolderWithOrganizationName)
+            {
+				file = new FileInfo(Path.Combine(currentPath, "flow", orgDIRpath, Path.GetFileNameWithoutExtension(csvfileName) + ".drawio"));
+
+			}
+			else
+            {
+				file = new FileInfo(Path.Combine(currentPath, "flow", Path.GetFileNameWithoutExtension(csvfileName) + ".drawio"));
+
+			}
+
+			//FileInfo file = new FileInfo(Path.Combine(currentPath, "flow", Path.GetFileNameWithoutExtension(csvfileName) + ".drawio"));
+			try
             {
                 if (file.Length == 0)
                 {
@@ -274,8 +388,6 @@ namespace CallFlowVisualizer
 
 
             }
-
-
 
             return false;
         }

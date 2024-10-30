@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using PureCloudPlatform.Client.V2.Model;
+using System.Globalization;
 
 namespace CallFlowVisualizer
 {
@@ -22,7 +23,12 @@ namespace CallFlowVisualizer
             bool convertToPng = false;
             bool disableAcceleration=false;
             int maxSecondDescriptionLengh = 50;
-            List<string> flowTypeList = new();
+
+            //[ADD] 2024/10/27
+            bool createFolderWithOrganizationName = false;
+            string folderNameDateFormat = null;
+
+			List<string> flowTypeList = new();
             try
             {
                 var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
@@ -33,9 +39,12 @@ namespace CallFlowVisualizer
 
                 flowTypeList = configRoot.GetSection("cfvSettings").Get<CfvSettings>().flowTypeList;
 
+				//[ADD] 2024/10/27
+				createFolderWithOrganizationName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFolderWithOrganizationName;
+				folderNameDateFormat = configRoot.GetSection("cfvSettings").Get<CfvSettings>().FolderNameDateFormat;
 
-            }
-            catch (Exception)
+			}
+			catch (Exception)
             {
                 ColorConsole.WriteError($"The configuration file 'appsettings.json' was not found in this directory.");
                 PrintUsage();
@@ -49,10 +58,34 @@ namespace CallFlowVisualizer
 
             }
 
+			//[ADD] 2024/10/27
+			if (createFolderWithOrganizationName && !String.IsNullOrEmpty(folderNameDateFormat))
+			{
+				try
+				{
+					if (folderNameDateFormat.Contains("mm"))
+					{
+						throw new FormatException($"The format '{folderNameDateFormat}' is incorrect. 'mm' represents minutes. Use 'MM' for months.");
+					}
+
+					string dateString = DateTime.Now.ToString(folderNameDateFormat);
+
+					if (!DateTime.TryParseExact(dateString, folderNameDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime))
+					{
+						throw new FormatException($"Failed to parse the date string '{dateString}' with the format '{folderNameDateFormat}'");
+					}
+				}
+				catch (Exception e)
+				{
+					ColorConsole.WriteError($"Incorrect date format: {e.Message}");
+					PrintUsage();
+					throw;
+				}
 
 
+			}
 
-            var parseResult = Parser.Default.ParseArguments<Options>(args);
+			var parseResult = Parser.Default.ParseArguments<Options>(args);
             Options opt = new();
 
             string mode = "";
@@ -221,12 +254,12 @@ namespace CallFlowVisualizer
                     // [ADD] 2023/06/29
                     if (opt.flowId != null)
                     {
-                        jsonFileList = FetchFlows.CreateArchitectJSONFile(opt.flowId,opt.flowType);
+                        jsonFileList = FetchFlows.CreateArchitectJSONFile(opt.flowId,opt.flowType,opt.profile);
 
                     }
                     else
                     {
-                        jsonFileList = FetchFlows.CreateArchitectJSONFileWithName(opt.flowName, opt.flowType);
+                        jsonFileList = FetchFlows.CreateArchitectJSONFileWithName(opt.flowName, opt.flowType,opt.profile);
 
                     }
                     csvFileResultList = GcJSONtoCSV.gcJsonToCSV(jsonFileList, opt);
@@ -250,7 +283,7 @@ namespace CallFlowVisualizer
 
             if (opt.drawio || opt.visio || opt.png)
             {
-                DrawFlow.DrawFlowFromCSV(csvFileResultList, opt.visio, opt.png, disableAcceleration);
+                DrawFlow.DrawFlowFromCSV(csvFileResultList, opt.visio, opt.png, disableAcceleration,opt.profile);
 
             }
 
@@ -303,8 +336,6 @@ namespace CallFlowVisualizer
             Console.Out.Write(sb.ToString());
             Environment.Exit(1);
         }
-
-
 
     }
 

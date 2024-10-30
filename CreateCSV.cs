@@ -28,7 +28,17 @@ namespace CallFlowVisualizer
             int nodespacing = drawIOSettings.Nodespacing;
             int levelspacing = drawIOSettings.Levelspacing;
 
-            string nodeStyle = getNodeStyle(colorNode, nodeRound);
+			//ADD 20241027
+			bool createFolderWithOrganizationName = false;
+			string folderNameDateFormat = null;
+			createFolderWithOrganizationName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFolderWithOrganizationName;
+			folderNameDateFormat = configRoot.GetSection("cfvSettings").Get<CfvSettings>().FolderNameDateFormat;
+
+
+
+
+
+			string nodeStyle = getNodeStyle(colorNode, nodeRound);
             string lineStyle = getLineStyle(lineRound);
 
             List<string> profileNodePath = flowElementsList.Where(x => x.Type == "Profile").Select(x => x.NodePath).ToList();
@@ -161,7 +171,7 @@ namespace CallFlowVisualizer
 
         }
 
-        internal static string CreateCSVGenCloud(List<GenesysCloudFlowNode> FlowNodeList, string flowName, string flowId, bool debug, string flowGroup)
+        internal static string CreateCSVGenCloud(List<GenesysCloudFlowNode> FlowNodeList, string flowName, string flowId, bool debug, string flowGroup,string orgDIRpath)
         {
 
             var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
@@ -184,9 +194,21 @@ namespace CallFlowVisualizer
             //[ADD-1]2023/03/25
             int maxSecondDescriptionLengh = configRoot.GetSection("cfvSettings").Get<CfvSettings>().MaxSecondDescriptionLengh;
 
-
-            string currentPath = Directory.GetCurrentDirectory();
+			string currentPath = Directory.GetCurrentDirectory();
             createCSVFolder(currentPath);
+
+			//[ADD] 2024/10/27
+			if (!String.IsNullOrEmpty(orgDIRpath))
+            {
+                currentPath = Path.Combine(currentPath, "csv", orgDIRpath);
+
+                createCSVFolderWithOrgName(currentPath);
+
+            }
+            else
+            {
+				currentPath = Path.Combine(currentPath, "csv");
+			}
 
             string csvfilename;
 
@@ -204,19 +226,26 @@ namespace CallFlowVisualizer
 
             if (appendDatetime)
             {
-                csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss_fff") + ".csv");
+				//[MOD] 2024/10/27
+				//csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss_fff") + ".csv");
+				csvfilename = Path.Combine(currentPath, flowName + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss_fff") + ".csv");
 
-            }
-            else
+			}
+			else
             {
-                csvfilename = Path.Combine(currentPath, "csv", flowName + ".csv");
-                if (File.Exists(csvfilename))
+				//[MOD] 2024/10/27
+				//csvfilename = Path.Combine(currentPath, "csv", flowName + ".csv");
+				csvfilename = Path.Combine(currentPath, flowName + ".csv");
+
+				if (File.Exists(csvfilename))
                 {
-                    csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + flowId + ".csv");
+					//[MOD] 2024/10/27
+					//csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + flowId + ".csv");
+					csvfilename = Path.Combine(currentPath, flowName + "_" + flowId + ".csv");
 
-                }
+				}
 
-            }
+			}
 
             int maxParentIdRef = FlowNodeList.Select(x => x.ParentId).ToList().OrderByDescending(x => x.Count()).Take(1).FirstOrDefault().Count();
 
@@ -369,7 +398,7 @@ namespace CallFlowVisualizer
 
         }
 
-        internal static string CreateCSVGenCloudPerPage(List<GenesysCloudFlowNode> FlowNodeList, string flowName, string flowId, bool debug, string flowGroup)
+        internal static string CreateCSVGenCloudPerPage(List<GenesysCloudFlowNode> FlowNodeList, string flowName, string flowId, bool debug, string flowGroup,string orgDIRpath)
         {
             //[ADD] 2023/03/31
             var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
@@ -396,7 +425,22 @@ namespace CallFlowVisualizer
             string currentPath = Directory.GetCurrentDirectory();
             createCSVFolder(currentPath);
 
-            string csvfilename;
+
+			//[ADD] 2024/10/27
+			if (!String.IsNullOrEmpty(orgDIRpath))
+			{
+				currentPath = Path.Combine(currentPath, "csv", orgDIRpath);
+
+				createCSVFolderWithOrgName(currentPath);
+
+			}
+			else
+			{
+				currentPath = Path.Combine(currentPath, "csv");
+			}
+
+
+			string csvfilename;
 
             if (!String.IsNullOrEmpty(flowGroup))
             {
@@ -412,19 +456,28 @@ namespace CallFlowVisualizer
 
             if (appendDatetime)
             {
-                csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss_fff") + ".csv");
+				//[MOD] 2024/10/27
+				//csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss_fff") + ".csv");
+				csvfilename = Path.Combine(currentPath, flowName + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss_fff") + ".csv");
 
-            }
-            else
+
+			}
+			else
             {
-                csvfilename = Path.Combine(currentPath, "csv", flowName + ".csv");
-                if (File.Exists(csvfilename))
+				//[MOD] 2024/10/27
+				//csvfilename = Path.Combine(currentPath, "csv", flowName + ".csv");
+				csvfilename = Path.Combine(currentPath, flowName + ".csv");
+
+
+				if (File.Exists(csvfilename))
                 {
-                    csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + flowId + ".csv");
+					//[MOD] 2024/10/27
+					//csvfilename = Path.Combine(currentPath, "csv", flowName + "_" + flowId + ".csv");
+					csvfilename = Path.Combine(currentPath, flowName + "_" + flowId + ".csv");
 
-                }
+				}
 
-            }
+			}
 
             int maxParentIdRef = FlowNodeList.Select(x => x.ParentId).ToList().OrderByDescending(x => x.Count()).Take(1).FirstOrDefault().Count();
 
@@ -699,6 +752,29 @@ namespace CallFlowVisualizer
             }
 
         }
+
+		//[ADD] 2024/10/27
+		private static void createCSVFolderWithOrgName(string currentPath)
+		{
+			try
+			{
+				if (!Directory.Exists(currentPath))
+					Directory.CreateDirectory(currentPath);
+
+			}
+			catch (Exception)
+			{
+				ColorConsole.WriteError("Failed to create CSV folder.Check file access permission.");
+				Environment.Exit(1);
+			}
+
+		}
+
+
+
+
+
+
 
         // draw.io cannot accept backslash,so replace to _
         private static string replaceBackSlash(string nodePath)

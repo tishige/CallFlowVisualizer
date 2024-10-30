@@ -22,8 +22,10 @@ namespace CallFlowVisualizer
             var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build(); ;
 
             string gcProfileFileName = configRoot.GetSection("gcSettings").Get<GcSettings>().GcProfileFileName; ;
+            string gcEndpoint = configRoot.GetSection("gcSettings").Get<GcSettings>().Endpoint;
 
-            if (!Path.IsPathRooted(gcProfileFileName))
+
+			if (!Path.IsPathRooted(gcProfileFileName))
             {
                 gcProfileFileName= Path.Combine(Directory.GetCurrentDirectory(), gcProfileFileName);
 
@@ -75,33 +77,56 @@ namespace CallFlowVisualizer
 
 
             string gcRegion = GetRegionHost(environment);
-            int maxRetryTimeSec = configRoot.GetSection("gcSettings").Get<GcSettings>().MaxRetryTimeSec; ;
+
+			int maxRetryTimeSec = configRoot.GetSection("gcSettings").Get<GcSettings>().MaxRetryTimeSec; ;
             int retryMax = configRoot.GetSection("gcSettings").Get<GcSettings>().RetryMax;
 
             bool useProxy = configRoot.GetSection("proxySettings").Get<ProxySettings>().UseProxy;
             string proxyServerAddress = configRoot.GetSection("proxySettings").Get<ProxySettings>().ProxyServerAddress;
             bool useProxyAuth = !string.IsNullOrEmpty(proxyUserName);
 
-            if (string.IsNullOrEmpty(gcRegion) || gcRegion== "Tommy.TomlLazy" || client_credentials== "Tommy.TomlLazy" || client_secret=="Tommy.TomlLazy")
+
+			//[MOD] 2024/10/28
+
+			//if (string.IsNullOrEmpty(gcRegion) || gcRegion== "Tommy.TomlLazy" || client_credentials== "Tommy.TomlLazy" || client_secret=="Tommy.TomlLazy")
+			//{
+			//    ColorConsole.WriteError(@"Required parameter for GenesysCloud API was not set. Set environment and client credentials in .toml file.");
+			//    Environment.Exit(1);
+
+			//}
+
+			if (gcRegion == "Tommy.TomlLazy" || client_credentials == "Tommy.TomlLazy" || client_secret == "Tommy.TomlLazy")
+			{
+				ColorConsole.WriteError(@"Required parameter for GenesysCloud API was not set. Set environment and client credentials in .toml file.");
+				Environment.Exit(1);
+
+			}
+
+			ColorConsole.WriteLine($"Start GetAccessToken.", ConsoleColor.Yellow);
+
+			//[ADD] 2024/10/28
+			if (!String.IsNullOrEmpty(gcRegion))
             {
-                ColorConsole.WriteError(@"Required parameter for GenesysCloud API was not set. Set environment and client credentials in .toml file.");
-                Environment.Exit(1);
+
+				try
+				{
+					// Need to change Rest sharp version to 106.3.1 in app.config to resolve error
+					PureCloudRegionHosts region = (PureCloudRegionHosts)Enum.Parse(typeof(PureCloudRegionHosts), gcRegion);
+					Configuration.Default.ApiClient.setBasePath(region);
+				}
+				catch (Exception)
+				{
+					ColorConsole.WriteError(@"Required parameter for GenesysCloud API was not set. Set environment properly in .toml file. e.g. ap_northeast_1 or mypurecloud.jp");
+					Environment.Exit(1);
+				}
 
             }
-
-            ColorConsole.WriteLine($"Start GetAccessToken.", ConsoleColor.Yellow);
-
-            try
+            else
             {
-                // Need to change Rest sharp version to 106.3.1 in app.config to resolve error
-                PureCloudRegionHosts region = (PureCloudRegionHosts)Enum.Parse(typeof(PureCloudRegionHosts), gcRegion);
-                Configuration.Default.ApiClient.setBasePath(region);
-            }
-            catch (Exception)
-            {
-                ColorConsole.WriteError(@"Required parameter for GenesysCloud API was not set. Set environment properly in .toml file. e.g. ap_northeast_1 or mypurecloud.jp");
-                Environment.Exit(1);
-            }
+                // For new open regison not listed in Purecloud region hosts
+				Configuration.Default.ApiClient.setBasePath(gcEndpoint);
+
+			}
 
 
             if (useProxy)

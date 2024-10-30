@@ -33,12 +33,47 @@ namespace CallFlowVisualizer
             bool showPromptDetail = configRoot.GetSection("cfvSettings").Get<CfvSettings>().ShowPromptDetail;
 
 
-            List<string> csvFileResultList = new();
+			//[ADD] 2024/10/27
+			bool createFolderWithOrganizationName = false;
+			string folderNameDateFormat = null;
+			createFolderWithOrganizationName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFolderWithOrganizationName;
+			folderNameDateFormat = configRoot.GetSection("cfvSettings").Get<CfvSettings>().FolderNameDateFormat;
+            string orgDIRpath = null;
+
+			List<string> csvFileResultList = new();
 
             Console.WriteLine();
             ColorConsole.WriteLine("Creating CSV file for GenesysCloud", ConsoleColor.Yellow);
-            
-            var pboptions = new ProgressBarOptions
+
+
+            if (createFolderWithOrganizationName)
+            {
+                if (opt.profile=="default")
+                {
+					orgDIRpath = FetchFlows.FetchOrgName();
+                }
+                else
+                {
+					orgDIRpath = opt.profile;
+                }
+
+
+                if (!String.IsNullOrEmpty(folderNameDateFormat))
+                {
+					orgDIRpath= orgDIRpath+"_"+DateTime.Now.ToString(folderNameDateFormat);
+				}
+
+
+				foreach (char c in Path.GetInvalidFileNameChars())
+				{
+
+					orgDIRpath = orgDIRpath.Replace(c, '_');
+				}
+
+
+			}
+
+			var pboptions = new ProgressBarOptions
             {
                 ProgressCharacter = '─',
                 ProgressBarOnBottom = true
@@ -119,18 +154,18 @@ namespace CallFlowVisualizer
                         flowGroupName = flowGroupName.Replace(' ', '_');
                         List<GenesysCloudFlowNode> flowNodesListPerTask = new();
                         flowNodesListPerTask = flowNodeListGrouped_i.ToList();
-                        csvFileResultList.Add(CreateCSV.CreateCSVGenCloud(flowNodesListPerTask, flowName, flowId, opt.debug, flowGroupName));
+                        csvFileResultList.Add(CreateCSV.CreateCSVGenCloud(flowNodesListPerTask, flowName, flowId, opt.debug, flowGroupName,orgDIRpath));
 
                     }
 
                 }
                 else if (createPagePerReusabletask) //[ADD] 2023/03/31
                 {
-                    csvFileResultList.Add(CreateCSV.CreateCSVGenCloudPerPage(flowNodesList, flowName, flowId, opt.debug, null));
+                    csvFileResultList.Add(CreateCSV.CreateCSVGenCloudPerPage(flowNodesList, flowName, flowId, opt.debug, null, orgDIRpath));
 
                 }else
                 {
-                    csvFileResultList.Add(CreateCSV.CreateCSVGenCloud(flowNodesList, flowName, flowId, opt.debug,null));
+                    csvFileResultList.Add(CreateCSV.CreateCSVGenCloud(flowNodesList, flowName, flowId, opt.debug,null, orgDIRpath));
 
                 }
 
@@ -177,9 +212,7 @@ namespace CallFlowVisualizer
             CreateCSV.CreatePDListCSVGenCloud(gcPDList);
             Console.WriteLine();
 
-
         }
-
 
     }
 }

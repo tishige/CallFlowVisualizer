@@ -15,7 +15,7 @@ namespace CallFlowVisualizer
     {
         internal static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        internal static List<string> CreateArchitectJSONFile(string flowId, IEnumerable<string> flowType)
+        internal static List<string> CreateArchitectJSONFile(string flowId, IEnumerable<string> flowType,string gcProfileName)
         {
             var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
 
@@ -37,12 +37,56 @@ namespace CallFlowVisualizer
 
             }
 
-            // org name
-            OrganizationApi gcOrgApi = new();
-            Organization result = gcOrgApi.GetOrganizationsMe();
-            string orgName = result.Name;
+			//[MOD] 2024/10/27
+			// org name
+			//OrganizationApi gcOrgApi = new();
+			//Organization result = gcOrgApi.GetOrganizationsMe();
+			//string orgName = result.Name;
 
-            var pboptions = new ProgressBarOptions
+			string orgName = FetchOrgName();
+
+			//[ADD] 2024/10/27
+			bool createFolderWithOrganizationName = false;
+			string folderNameDateFormat = null;
+			createFolderWithOrganizationName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFolderWithOrganizationName;
+			folderNameDateFormat = configRoot.GetSection("cfvSettings").Get<CfvSettings>().FolderNameDateFormat;
+			string orgDIRpath = null;
+
+			if (createFolderWithOrganizationName)
+			{
+				if (gcProfileName == "default")
+				{
+					orgDIRpath = FetchFlows.FetchOrgName();
+				}
+				else
+				{
+					orgDIRpath = gcProfileName;
+				}
+
+
+				if (!String.IsNullOrEmpty(folderNameDateFormat))
+				{
+					orgDIRpath = orgDIRpath + "_" + DateTime.Now.ToString(folderNameDateFormat);
+				}
+
+
+				foreach (char c in Path.GetInvalidFileNameChars())
+				{
+
+					orgDIRpath = orgDIRpath.Replace(c, '_');
+				}
+
+				currentPath = Path.Combine(currentPath, "Architect", orgDIRpath);
+
+				createArchitectFolderWithOrgName(currentPath);
+
+            }
+            else
+            {
+				currentPath = Path.Combine(currentPath, "Architect");
+			}
+
+			var pboptions = new ProgressBarOptions
             {
                 ProgressCharacter = '─',
                 ProgressBarOnBottom = true
@@ -115,8 +159,9 @@ namespace CallFlowVisualizer
                 Logger.Info($"Fetch {flowData.Id} flow completed!");
 
             }
-
-            ColorConsole.WriteLine($"Fetch Architect Latest Configuration from [{orgName}] Number of flows:{flowDataList.Count()}", ConsoleColor.Yellow);
+            //[ADD] 2024/10/28
+			Console.WriteLine();
+			ColorConsole.WriteLine($"Fetch Architect Latest Configuration from [{orgName}] Number of flows:{flowDataList.Count()}", ConsoleColor.Yellow);
             var fdlpb = new ProgressBar(flowDataList.Count(), "Fetch Architect Latest Configuration", pboptions);
 
             // Save JSON file
@@ -166,9 +211,10 @@ namespace CallFlowVisualizer
                 }
 
 
-                string filePath = Path.Combine(currentPath, "Architect", flowName + "_"+item.Id+".json");
+                //string filePath = Path.Combine(currentPath, "Architect", flowName + "_"+item.Id+".json");
+				string filePath = Path.Combine(currentPath, flowName + "_" + item.Id + ".json");
 
-                fdlpb.Tick(flowName);
+				fdlpb.Tick(flowName);
 
                 using (StreamWriter file = File.CreateText(filePath))
                 {
@@ -186,7 +232,7 @@ namespace CallFlowVisualizer
         }
 
         // [ADD] 2023/06/29
-        internal static List<string> CreateArchitectJSONFileWithName(string flowName, IEnumerable<string> flowType)
+        internal static List<string> CreateArchitectJSONFileWithName(string flowName, IEnumerable<string> flowType,string gcProfileName)
         {
             var configRoot = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "appsettings.json").Build();
 
@@ -206,12 +252,55 @@ namespace CallFlowVisualizer
             if (!Directory.Exists(Path.Combine(currentPath, "Architect")))
                 Directory.CreateDirectory(Path.Combine(currentPath, "Architect"));
 
-            // org name
-            OrganizationApi gcOrgApi = new();
-            Organization result = gcOrgApi.GetOrganizationsMe();
-            string orgName = result.Name;
+            // org name [MOD] 2024/10/27
+            //OrganizationApi gcOrgApi = new();
+            //Organization result = gcOrgApi.GetOrganizationsMe();
+            //string orgName = result.Name;
 
-            var pboptions = new ProgressBarOptions
+            string orgName = FetchOrgName();
+
+			//[ADD] 2024/10/27
+			bool createFolderWithOrganizationName = false;
+			string folderNameDateFormat = null;
+			createFolderWithOrganizationName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFolderWithOrganizationName;
+			folderNameDateFormat = configRoot.GetSection("cfvSettings").Get<CfvSettings>().FolderNameDateFormat;
+			string orgDIRpath = null;
+
+			if (createFolderWithOrganizationName)
+			{
+				if (gcProfileName == "default")
+				{
+					orgDIRpath = FetchFlows.FetchOrgName();
+				}
+				else
+				{
+					orgDIRpath = gcProfileName;
+				}
+
+
+				if (!String.IsNullOrEmpty(folderNameDateFormat))
+				{
+					orgDIRpath = orgDIRpath + "_" + DateTime.Now.ToString(folderNameDateFormat);
+				}
+
+
+				foreach (char c in Path.GetInvalidFileNameChars())
+				{
+
+					orgDIRpath = orgDIRpath.Replace(c, '_');
+				}
+
+				currentPath = Path.Combine(currentPath, "Architect", orgDIRpath);
+
+				createArchitectFolderWithOrgName(currentPath);
+
+			}
+			else
+			{
+				currentPath = Path.Combine(currentPath, "Architect");
+			}
+
+			var pboptions = new ProgressBarOptions
             {
                 ProgressCharacter = '─',
                 ProgressBarOnBottom = true
@@ -307,7 +396,7 @@ namespace CallFlowVisualizer
                 Environment.Exit(0);
             }
 
-
+            // Todo add exactly match for 01_First
             flowDataList=flowDataList.Where(x=>x.Name == flowName).ToList();
 
             foreach (var item in flowDataList)
@@ -350,9 +439,12 @@ namespace CallFlowVisualizer
                 }
 
 
-                string filePath = Path.Combine(currentPath, "Architect", flowName + "_" + item.Id + ".json");
+                //string filePath = Path.Combine(currentPath, "Architect", flowName + "_" + item.Id + ".json");
+				string filePath = Path.Combine(currentPath, flowName + "_" + item.Id + ".json");
 
-                fdlpb.Tick(flowName);
+
+
+				fdlpb.Tick(flowName);
 
                 using (StreamWriter file = File.CreateText(filePath))
                 {
@@ -369,9 +461,34 @@ namespace CallFlowVisualizer
 
         }
 
+        public static string FetchOrgName()
+        {
+			OrganizationApi gcOrgApi = new();
+			Organization result = gcOrgApi.GetOrganizationsMe();
+			string orgName = result.Name;
+            return orgName;
+		}
 
 
-        private class FlowData
+		//[ADD] 2024/10/27
+		private static void createArchitectFolderWithOrgName(string currentPath)
+		{
+			try
+			{
+				if (!Directory.Exists(currentPath))
+					Directory.CreateDirectory(currentPath);
+
+			}
+			catch (Exception)
+			{
+				ColorConsole.WriteError("Failed to create Architect folder.Check file access permission.");
+				Environment.Exit(1);
+			}
+
+		}
+
+
+		private class FlowData
         {
             internal string Id { get; set; } = null!;
             internal string Name { get; set; } = null!;

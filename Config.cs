@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,8 +14,9 @@ namespace CallFlowVisualizer
         public int PageSize { get; set; }
         public int MaxRetryTimeSec { get; set; }
         public int RetryMax { get; set; }
+        public string Endpoint { get; set; }
 
-    }
+	}
 
     public class ProxySettings
     {
@@ -37,9 +39,12 @@ namespace CallFlowVisualizer
         public bool CreatePagePerReusabletask { get;set; }
         public List<string> flowTypeList { get; set; }
         public bool ShowPromptDetail { get; set; }
+        public bool CreateFolderWithOrganizationName { get; set; }
+        public string FolderNameDateFormat { get; set; }
 
 
-    }
+
+	}
 
     public class DrawioSettings
     {
