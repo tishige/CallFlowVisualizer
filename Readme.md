@@ -133,7 +133,7 @@ Change config values in appsettings.json
 |                                  | https://api.apne3.pure.cloud                                          |         |
 |                                  | https://api.euc2.pure.cloud                                           |         |
 | createFolderWithOrganizationName | Create folder with orgnization name                                   | false   |
-| folderNameDateFormat             | Create folder with orgnization name_currentDate                       | MMddyyyy|
+| folderNameDateFormat             | Create folder with orgnization name_currentDate  Set "" to false      | MMddyyyy|
 
 ## 6. TIPS
 
