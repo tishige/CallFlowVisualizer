@@ -48,7 +48,7 @@ namespace CallFlowVisualizer
 
             if (createFolderWithOrganizationName)
             {
-                if (opt.profile=="default")
+                if (opt.profile=="default" && !opt.architect)
                 {
 					orgDIRpath = FetchFlows.FetchOrgName();
                 }

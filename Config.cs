@@ -42,8 +42,6 @@ namespace CallFlowVisualizer
         public bool CreateFolderWithOrganizationName { get; set; }
         public string FolderNameDateFormat { get; set; }
 
-
-
 	}
 
     public class DrawioSettings
@@ -58,7 +56,9 @@ namespace CallFlowVisualizer
         public bool ConvertToVisio { get; set; }
         public bool ConvertToPng { get; set; }
         public bool DisableAcceleration { get; set; }
+        public bool ConvertToDrawio { get; set; }
 
-    }
+
+	}
 
 }

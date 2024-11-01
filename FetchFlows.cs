@@ -56,7 +56,10 @@ namespace CallFlowVisualizer
 			{
 				if (gcProfileName == "default")
 				{
-					orgDIRpath = FetchFlows.FetchOrgName();
+                    //[MOD] 2024/10/31 v1.7.1
+                    //orgDIRpath = FetchFlows.FetchOrgName();
+                    orgDIRpath = orgName;
+
 				}
 				else
 				{
@@ -176,21 +179,35 @@ namespace CallFlowVisualizer
 
                 Logger.Info($"Fetch Flow {item.Id}");
 
-                try
-                {
-                    //Need to use Newtonsoft version 12.0.1 to avoid Max Depth 64 depth problem.
-                    flowResponse = (JObject)gcArchApi.GetFlowLatestconfiguration(item.Id);
+				//[MOD] 2024/10/31
+				bool isSuccess = false;
+				while (!isSuccess)
+				{
+					try
+					{
+						//Need to use Newtonsoft version 12.0.1 to avoid Max Depth 64 depth problem.  
+						flowResponse = (JObject)gcArchApi.GetFlowLatestconfiguration(item.Id);
+						isSuccess = true; // If no exception is thrown, mark as success  
+					}
+					catch (Exception e)
+					{
+						if (e.Message.Contains("too.many.requests.retry.after") || e.Message.Contains("429") || e.Message.Contains("client.credentials.token.rate.per.minute"))
+						{
+							Logger.Error("Rate limit exceeded, sleeping for 60 seconds" + e.Message);
+							ColorConsole.WriteError("Rate limit exceeded, sleeping for 60 seconds" + e.Message);
+							Thread.Sleep(60000);
+						}
+						else
+						{
+							Logger.Error("Exception when calling Architect.GetFlowLatestconfiguration: " + e.Message);
+							ColorConsole.WriteError("Exception when calling Architect.GetFlowLatestconfiguration: " + e.Message);
+							Environment.Exit(1);
+						}
+					}
+				}
 
-                }
-                catch (Exception e)
-                {
-                    Debug.Print("Exception when calling Architect.GetFlowLatestconfiguration: " + e.Message);
-                    ColorConsole.WriteError("Exception when calling Architect.GetFlowLatestconfiguration: " + e.Message);
-                    Environment.Exit(1);
 
-                }
-
-                string flowName = flowResponse["name"].ToString().Replace(" ", "_").Replace("&", "and");
+				string flowName = flowResponse["name"].ToString().Replace(" ", "_").Replace("&", "and");
 
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
@@ -270,7 +287,10 @@ namespace CallFlowVisualizer
 			{
 				if (gcProfileName == "default")
 				{
-					orgDIRpath = FetchFlows.FetchOrgName();
+                    //[MOD] 2024/10/31 v1.7.1
+                    //orgDIRpath = FetchFlows.FetchOrgName();
+                    orgDIRpath = orgName;
+
 				}
 				else
 				{
@@ -404,21 +424,35 @@ namespace CallFlowVisualizer
 
                 Logger.Info($"Fetch Flow:[{item.Name}] Type:[{flowResponse["type"]}]");
 
-                try
-                {
-                    //Need to use Newtonsoft version 12.0.1 to avoid Max Depth 64 depth problem.
-                    flowResponse = (JObject)gcArchApi.GetFlowLatestconfiguration(item.Id);
+                //[MOD] 2024/10/31
+				bool isSuccess = false;
+				while (!isSuccess)
+				{
+					try
+					{
+						//Need to use Newtonsoft version 12.0.1 to avoid Max Depth 64 depth problem.  
+						flowResponse = (JObject)gcArchApi.GetFlowLatestconfiguration(item.Id);
+						isSuccess = true;
+					}
+					catch (Exception e)
+					{
+						if (e.Message.Contains("too.many.requests.retry.after") || e.Message.Contains("429") || e.Message.Contains("client.credentials.token.rate.per.minute"))
+						{
+							Logger.Error("Rate limit exceeded, sleeping for 60 seconds" + e.Message);
+							ColorConsole.WriteError("Rate limit exceeded, sleeping for 60 seconds" + e.Message);
+							Thread.Sleep(60000);
+						}
+						else
+						{
+							Logger.Error("Exception when calling Architect.GetFlowLatestconfiguration: " + e.Message);
+							ColorConsole.WriteError("Exception when calling Architect.GetFlowLatestconfiguration: " + e.Message);
+							Environment.Exit(1);
+						}
+					}
+				}
 
-                }
-                catch (Exception e)
-                {
-                    Debug.Print("Exception when calling Architect.GetFlowLatestconfiguration: " + e.Message);
-                    ColorConsole.WriteError("Exception when calling Architect.GetFlowLatestconfiguration: " + e.Message);
-                    Environment.Exit(1);
 
-                }
-
-                flowName = flowResponse["name"].ToString().Replace(" ", "_").Replace("&", "and");
+				flowName = flowResponse["name"].ToString().Replace(" ", "_").Replace("&", "and");
 
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {

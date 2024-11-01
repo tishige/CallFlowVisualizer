@@ -8,7 +8,7 @@ namespace CallFlowVisualizer
 {
     internal class DrawFlow
     {
-        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png,bool disableAcceleration,string gcProfileName)
+        internal static void DrawFlowFromCSV(List<string> csvFileResultList, bool visio, bool png,bool disableAcceleration,string gcProfileName,bool architectmode)
         {
 
 			ColorConsole.WriteLine($"Creating drawio diagram", ConsoleColor.Yellow);
@@ -26,7 +26,8 @@ namespace CallFlowVisualizer
 
 			if (createFolderWithOrganizationName)
 			{
-				if (gcProfileName == "default")
+
+				if (gcProfileName == "default"&&!architectmode)
 				{
 					orgDIRpath = FetchFlows.FetchOrgName();
 				}

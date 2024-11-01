@@ -118,9 +118,10 @@ Change config values in appsettings.json
 | colorNode                        | Paint shapes                                                          | true    |
 | nodeRound                        | Draw rounded shapes                                                   | false   |
 | lineRound                        | Draw rounded lines                                                    | true    |
+| convertToDrawio                  | Always convert to Drawio without specifying -d option                 | true    |
 | convertToVisio                   | Always convert to Visio format without specifying -v option           | false   |
 | convertToPng                     | Always convert to png format without specifying -n option             | true    |
-| createParticipantDataList        | Always create Genesys Cloud Participant Data List                     | true    |
+| createParticipantDataList        | Always create Genesys Cloud Participant Data List                     | false   |
 | createflowPerReusabletask        | Create draw.io flow files per Re-usable Task                          | false   |
 | maxSecondDescriptionLengh        | Max second description length                                         | 1024    |
 | showExpression                   | Show expression for UpdateVariableAction / Get/SetAttributesAction    | true    |

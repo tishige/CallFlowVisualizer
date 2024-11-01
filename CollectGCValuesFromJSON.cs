@@ -524,10 +524,26 @@ namespace CallFlowVisualizer
 						string evaluateEmergencyGroup = (string)action_i["evaluateEmergencyGroup"] ?? (string)action_i["evaluateEmergencyGroup"];
 
 						string evaluateNow = (string)action_i["evaluateNow"] ?? (string)action_i["evaluateNow"];
-						string scheduleName= (string)action_i["schedule"]["text"] ?? (string)action_i["schedule"]["text"];
-                        string timeZone = (string)action_i["timeZone"]["text"] ?? (string)action_i["timeZone"]["text"];
+
+						//[FIX] 2024/10/31 v1.7.1
+						string scheduleName = null;;
+						if (action_i != null && action_i["schedule"] != null)
+						{
+							scheduleName = (string)action_i["schedule"]["text"];
+						}
+
+
+						string timeZone = (string)action_i["timeZone"]["text"] ?? (string)action_i["timeZone"]["text"];
                         string evaluationDateTime = (string)action_i["evaluationDateTime"]["text"] ?? (string)action_i["evaluationDateTime"]["text"];
-						string emergencyGroup = (string)action_i["emergencyGroup"]["text"] ?? (string)action_i["emergencyGroup"]["text"];
+
+						//[FIX] 2024/10/31 v1.7.1
+						string emergencyGroup = null;
+						if (action_i != null && action_i["emergencyGroup"] != null)
+						{
+							emergencyGroup = (string)action_i["emergencyGroup"]["text"];
+						}
+
+
 
 
 						if (evaluateEmergencyGroup == "False")

@@ -28,6 +28,11 @@ namespace CallFlowVisualizer
             bool createFolderWithOrganizationName = false;
             string folderNameDateFormat = null;
 
+            //[MOD] 2024/10/31 v1.7.1
+            bool convertToDrawio = false;
+            bool createParticipantDataList = false;
+
+
 			List<string> flowTypeList = new();
             try
             {
@@ -42,6 +47,12 @@ namespace CallFlowVisualizer
 				//[ADD] 2024/10/27
 				createFolderWithOrganizationName = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateFolderWithOrganizationName;
 				folderNameDateFormat = configRoot.GetSection("cfvSettings").Get<CfvSettings>().FolderNameDateFormat;
+
+
+				convertToDrawio = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().ConvertToDrawio;
+				createParticipantDataList = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateParticipantDataList;
+
+
 
 			}
 			catch (Exception)
@@ -99,6 +110,8 @@ namespace CallFlowVisualizer
 
                     if (convertToVisio) opt.visio = true;
                     if (convertToPng) opt.png = true;
+					//[MOD] 2024/10/31 v1.7.1
+					if (convertToDrawio) opt.drawio = true;
 
                     if (opt.Filename != null && opt.flowId != null)
                     {
@@ -283,11 +296,12 @@ namespace CallFlowVisualizer
 
             if (opt.drawio || opt.visio || opt.png)
             {
-                DrawFlow.DrawFlowFromCSV(csvFileResultList, opt.visio, opt.png, disableAcceleration,opt.profile);
+                DrawFlow.DrawFlowFromCSV(csvFileResultList, opt.visio, opt.png, disableAcceleration,opt.profile,opt.architect);
 
             }
 
-            if(opt.createParticipantDataList)
+			//[MOD] 2024/10/31 v1.7.1
+			if (opt.createParticipantDataList|| createParticipantDataList)
             {
                 GcJSONtoCSV.gcJsonToPDListCSV(jsonFileListPD);
             }
