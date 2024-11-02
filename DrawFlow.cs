@@ -30,6 +30,7 @@ namespace CallFlowVisualizer
 				if (gcProfileName == "default"&&!architectmode)
 				{
 					orgDIRpath = FetchFlows.FetchOrgName();
+
 				}
 				else
 				{
@@ -48,6 +49,8 @@ namespace CallFlowVisualizer
 
 					orgDIRpath = orgDIRpath.Replace(c, '_');
 				}
+				orgDIRpath = orgDIRpath.Replace(" ", "");
+
 
 			}
 
@@ -163,10 +166,12 @@ namespace CallFlowVisualizer
                 //[ADD] 2024/10/27
 				string arguments = "-i " + csvFile_i;
 
+                //[MOD] 2024/11/02 v1.7.2
 				if (createFolderWithOrganizationName)
 				{
-					arguments += " -d " + orgDIRpath;
+					arguments += " -d \"" + orgDIRpath + "\"";
 				}
+
 
 				if (disableAcceleration)
 				{

@@ -78,6 +78,7 @@ namespace CallFlowVisualizer
 
 					orgDIRpath = orgDIRpath.Replace(c, '_');
 				}
+				orgDIRpath = orgDIRpath.Replace(" ", "");
 
 				currentPath = Path.Combine(currentPath, "Architect", orgDIRpath);
 
@@ -303,12 +304,12 @@ namespace CallFlowVisualizer
 					orgDIRpath = orgDIRpath + "_" + DateTime.Now.ToString(folderNameDateFormat);
 				}
 
-
 				foreach (char c in Path.GetInvalidFileNameChars())
 				{
 
 					orgDIRpath = orgDIRpath.Replace(c, '_');
 				}
+				orgDIRpath = orgDIRpath.Replace(" ", "");
 
 				currentPath = Path.Combine(currentPath, "Architect", orgDIRpath);
 

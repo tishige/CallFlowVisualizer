@@ -70,6 +70,7 @@ namespace CallFlowVisualizer
 					orgDIRpath = orgDIRpath.Replace(c, '_');
 				}
 
+				orgDIRpath = orgDIRpath.Replace(" ", "");
 
 			}
 
