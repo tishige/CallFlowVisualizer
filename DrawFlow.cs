@@ -150,19 +150,6 @@ namespace CallFlowVisualizer
 
                 }
 
-				//20230319 --disable-acceleration
-                //[MOD] 2024/10/27
-				//if (disableAcceleration)
-				//{
-				//    startInfo.Arguments = "-i " + csvFile_i + " --disable-acceleration";
-
-				//}
-				//else
-				//{
-				//    startInfo.Arguments = "-i " + csvFile_i;
-
-				//}
-
                 //[ADD] 2024/10/27
 				string arguments = "-i " + csvFile_i;
 
@@ -180,8 +167,13 @@ namespace CallFlowVisualizer
 
 				startInfo.Arguments = arguments;
 
-				drawpb.Tick(csvFile_i);
-                p = Process.Start(startInfo);
+				//[MOD] 2024/11/20
+				string fileNameOnly = Path.GetFileNameWithoutExtension(csvFile_i);
+				drawpb.Tick(fileNameOnly);
+				//drawpb.Tick(csvFile_i);
+
+
+				p = Process.Start(startInfo);
                 p.WaitForExit();
 
                 if (IsDrawioFileSizeZero(currentPath, csvFile_i, createFolderWithOrganizationName, orgDIRpath))
@@ -276,8 +268,12 @@ namespace CallFlowVisualizer
 
                     }
 
-                    visiopb.Tick(drawioFile);
-                    p = Process.Start(startInfo);
+					//[MOD] 2024/11/20
+					string fileNameOnly = Path.GetFileNameWithoutExtension(drawioFile);
+					visiopb.Tick(fileNameOnly);
+					//visiopb.Tick(drawioFile);
+
+					p = Process.Start(startInfo);
                     p.WaitForExit();
 
                 }
@@ -292,7 +288,7 @@ namespace CallFlowVisualizer
 				ColorConsole.WriteLine("Convert to png", ConsoleColor.Yellow);
                 var pngpb = new ProgressBar(csvFileResultList.Count(), "Convert to png", pboptions);
 
-                if (!Directory.Exists(Path.Combine(currentPath, "png")))
+				if (!Directory.Exists(Path.Combine(currentPath, "png")))
                     Directory.CreateDirectory(Path.Combine(currentPath, "png"));
 
 				if (createFolderWithOrganizationName)
@@ -307,7 +303,6 @@ namespace CallFlowVisualizer
                 {
 
                     string drawioFile = Path.ChangeExtension(Path.GetFileName(csvFile_i), ".drawio");
-                    //drawioFile = Path.Combine(currentPath, "flow", drawioFile);
                     string outPutFolder;
 
 					if (createFolderWithOrganizationName)
@@ -346,8 +341,13 @@ namespace CallFlowVisualizer
 
                     }
 
-                    pngpb.Tick(drawioFile);
-                    p = Process.Start(startInfo);
+					//[MOD] 2024/11/20
+					string fileNameOnly = Path.GetFileNameWithoutExtension(drawioFile);
+					pngpb.Tick(fileNameOnly);
+					//pngpb.Tick(drawioFile);
+
+
+					p = Process.Start(startInfo);
                     p.WaitForExit();
 
                 }

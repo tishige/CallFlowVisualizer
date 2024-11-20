@@ -99,15 +99,15 @@ namespace CallFlowVisualizer
             // Fetch all flow
             if (flowId == "all")
             {
-                if(flowType!=null)
-                {
+				if (flowType.Count()!=0)
+				{
                     string flowTypeMessage = String.Join(",", flowType);
                     ColorConsole.WriteLine($"Fetch Flow Entities from [{orgName}] pageSize:{pageSize} flowType:[{flowTypeMessage}]", ConsoleColor.Yellow);
 
                 }
                 else
                 {
-                    ColorConsole.WriteLine($"Fetch Flow Entities from [{orgName}] pageSize:{pageSize}", ConsoleColor.Yellow);
+                    ColorConsole.WriteLine($"Fetch Flow Entities from [{orgName}] pageSize:{pageSize} flowType:[Not specified]", ConsoleColor.Yellow);
 
                 }
 
@@ -164,7 +164,6 @@ namespace CallFlowVisualizer
 
             }
             //[ADD] 2024/10/28
-			Console.WriteLine();
 			ColorConsole.WriteLine($"Fetch Architect Latest Configuration from [{orgName}] Number of flows:{flowDataList.Count()}", ConsoleColor.Yellow);
             var fdlpb = new ProgressBar(flowDataList.Count(), "Fetch Architect Latest Configuration", pboptions);
 
@@ -194,8 +193,9 @@ namespace CallFlowVisualizer
 					{
 						if (e.Message.Contains("too.many.requests.retry.after") || e.Message.Contains("429") || e.Message.Contains("client.credentials.token.rate.per.minute"))
 						{
-							Logger.Error("Rate limit exceeded, sleeping for 60 seconds" + e.Message);
-							ColorConsole.WriteError("Rate limit exceeded, sleeping for 60 seconds" + e.Message);
+							//[MOD] 2024/11/20
+							fdlpb.Tick("Rate limit exceeded, Sleeping for 60 seconds.");
+							Logger.Error("Rate limit exceeded, Sleeping for 60 seconds.");
 							Thread.Sleep(60000);
 						}
 						else
@@ -331,14 +331,14 @@ namespace CallFlowVisualizer
             if (flowName != null)
             {
                 string flowTypeMessage = String.Join(",", flowType);
-                if(flowType != null) 
-                {
+				if (flowType.Count()!=0)
+				{
                     ColorConsole.WriteLine($"Fetch Flow [{flowName}] from [{orgName}] pageSize:{pageSize} flowType:[{flowTypeMessage}]", ConsoleColor.Yellow);
 
                 }
                 else
                 {
-                    ColorConsole.WriteLine($"Fetch Flow [{flowName}] from [{orgName}] pageSize:{pageSize}", ConsoleColor.Yellow);
+                    ColorConsole.WriteLine($"Fetch Flow [{flowName}] from [{orgName}] pageSize:{pageSize} flowType:[Not specified]", ConsoleColor.Yellow);
 
                 }
 

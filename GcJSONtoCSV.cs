@@ -43,7 +43,8 @@ namespace CallFlowVisualizer
 			List<string> csvFileResultList = new();
 
             Console.WriteLine();
-            ColorConsole.WriteLine("Creating CSV file for GenesysCloud", ConsoleColor.Yellow);
+            //[MOD] 2024/11/20
+            ColorConsole.WriteLine("Creating CSV file for GenesysCloud                    ", ConsoleColor.Yellow);
 
 
             if (createFolderWithOrganizationName)

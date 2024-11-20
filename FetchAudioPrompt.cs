@@ -61,11 +61,11 @@ namespace CallFlowVisualizer
                         }
                         catch (Exception e)
                         {
-                            Debug.Print("Exception when calling Architect.prompts: " + e.Message);
-                            ColorConsole.WriteError("Exception when calling Architect.prompts: " + e.Message);
-                            ColorConsole.WriteError("Updating prompt details has been aborted due to an error.");
+                            //[MOD] 2024/11/20
+							Logger.Error("Exception when calling Architect.prompts: " + e.Message);
+							ColorConsole.WriteError("Updating prompt details has been aborted due to an error.");
 
-                            return flowNodesList;
+							return flowNodesList;
                         }
 
                         if (String.IsNullOrEmpty(promptEntity))
