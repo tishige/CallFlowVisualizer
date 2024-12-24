@@ -140,7 +140,7 @@ namespace CallFlowVisualizer
 
                 try
                 {
-                    Configuration.Default.ApiClient.RestClient.Proxy = new WebProxy(proxyServerAddress);
+                    Configuration.Default.ApiClient.ClientOptions.Proxy = new WebProxy(proxyServerAddress);
 
                 }
                 catch (Exception e)
@@ -152,7 +152,7 @@ namespace CallFlowVisualizer
                 
                 if (useProxyAuth)
                 {
-                    Configuration.Default.ApiClient.RestClient.Proxy.Credentials = new NetworkCredential(proxyUserName, proxyPassword);
+                    Configuration.Default.ApiClient.ClientOptions.Proxy.Credentials = new NetworkCredential(proxyUserName, proxyPassword);
 
                 }
 
