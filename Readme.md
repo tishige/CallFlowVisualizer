@@ -49,17 +49,19 @@ You should install official draw.io desktop app or use Visio.
 
 1. Install, or validate installed, .NET 6.0 (required)
    <br>https://aka.ms/dotnet-core-applaunch?framework=Microsoft.NETCore.App&framework_version=6.0.0&arch=x64&rid=win10-x64
-2. Install draw.io desktop
+   <br>For version 1.8.0 and later .Net 8.0 (required)
+   <br>https://aka.ms/dotnet-core-applaunch?framework=Microsoft.NETCore.App&framework_version=8.0.0&arch=x64&rid=win10-x64
+3. Install draw.io desktop
    <br>https://github.com/jgraph/drawio-desktop/releases/download/v20.7.4/draw.io-20.7.4-windows-installer.exe
 
-3. Download the latest binary from [Releases](https://github.com/tishige/CallFlowVisualizer/releases) page
-4. Create CallFlowVisualizer folder
-5. Unzip CallFlowVisualizer.ZIP to CallFlowVisualizer folder
+4. Download the latest binary from [Releases](https://github.com/tishige/CallFlowVisualizer/releases) page
+5. Create CallFlowVisualizer folder
+6. Unzip CallFlowVisualizer.ZIP to CallFlowVisualizer folder
    Please note that for installation, do not unzip the CallFlowVisualizer.ZIP to a path containing spaces.
    The conversion to draw.io file format is currently not functioning correctly.
 
-6. Create or Copy a ClientID and Client Secret of Client Credentials in Genesys Cloud. Required permission is Architect>Flow>View and Architect>User Prompt>View (if showPromptDetail is set to true)
-7. Replace ClientID and Client Secret with your actual values in .\config.toml or specify the file path of existing config.toml in appsettings.json<br>`"gcProfileFileName": "C:\\Users\\YourUserName\\.gc\\config.toml",`
+7. Create or Copy a ClientID and Client Secret of Client Credentials in Genesys Cloud. Required permission is Architect>Flow>View and Architect>User Prompt>View (if showPromptDetail is set to true)
+8. Replace ClientID and Client Secret with your actual values in .\config.toml or specify the file path of existing config.toml in appsettings.json<br>`"gcProfileFileName": "C:\\Users\\YourUserName\\.gc\\config.toml",`
 
 ## 4. How to use
 
