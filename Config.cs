@@ -41,10 +41,12 @@ namespace CallFlowVisualizer
         public bool ShowPromptDetail { get; set; }
         public bool CreateFolderWithOrganizationName { get; set; }
         public string FolderNameDateFormat { get; set; }
+		public bool CreateDataStepReference { get; set; }
+
 
 	}
 
-    public class DrawioSettings
+	public class DrawioSettings
     {
         public bool ColorNode { get; set; }
         public bool NodeRound { get; set; }

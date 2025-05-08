@@ -44,8 +44,11 @@ namespace CallFlowVisualizer
         [Option('t', "type",Separator =',', Required = false, HelpText = "Fetch latest Architect flow from GenesysCloud with specified flow type")]
         public IEnumerable<string> flowType { get; set; } = null!;
 
-        // Set file name at arg[0]
-        [Value(0,Hidden =true)]
+		[Option('r', "reference", Required = false, HelpText = "Create reference documents for flow data actions and data table lookups")]
+		public bool reference { get; set; } = false;
+
+		// Set file name at arg[0]
+		[Value(0,Hidden =true)]
         public string Filename { get; set; } = null!;
 
         // Show node id on diagram

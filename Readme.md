@@ -51,17 +51,17 @@ You should install official draw.io desktop app or use Visio.
    <br>https://aka.ms/dotnet-core-applaunch?framework=Microsoft.NETCore.App&framework_version=6.0.0&arch=x64&rid=win10-x64
    <br>For version 1.8.0 and later .Net 8.0 (required)
    <br>https://aka.ms/dotnet-core-applaunch?framework=Microsoft.NETCore.App&framework_version=8.0.0&arch=x64&rid=win10-x64
-3. Install draw.io desktop
+2. Install draw.io desktop
    <br>https://github.com/jgraph/drawio-desktop/releases/download/v20.7.4/draw.io-20.7.4-windows-installer.exe
 
-4. Download the latest binary from [Releases](https://github.com/tishige/CallFlowVisualizer/releases) page
-5. Create CallFlowVisualizer folder
-6. Unzip CallFlowVisualizer.ZIP to CallFlowVisualizer folder
+3. Download the latest binary from [Releases](https://github.com/tishige/CallFlowVisualizer/releases) page
+4. Create CallFlowVisualizer folder
+5. Unzip CallFlowVisualizer.ZIP to CallFlowVisualizer folder
    Please note that for installation, do not unzip the CallFlowVisualizer.ZIP to a path containing spaces.
    The conversion to draw.io file format is currently not functioning correctly.
 
-7. Create or Copy a ClientID and Client Secret of Client Credentials in Genesys Cloud. Required permission is Architect>Flow>View and Architect>User Prompt>View (if showPromptDetail is set to true)
-8. Replace ClientID and Client Secret with your actual values in .\config.toml or specify the file path of existing config.toml in appsettings.json<br>`"gcProfileFileName": "C:\\Users\\YourUserName\\.gc\\config.toml",`
+6. Create or Copy a ClientID and Client Secret of Client Credentials in Genesys Cloud. Required permission is Architect>Flow>View and Architect>User Prompt>View (if showPromptDetail is set to true)
+7. Replace ClientID and Client Secret with your actual values in .\config.toml or specify the file path of existing config.toml in appsettings.json<br>`"gcProfileFileName": "C:\\Users\\YourUserName\\.gc\\config.toml",`
 
 ## 4. How to use
 
@@ -82,7 +82,9 @@ You should install official draw.io desktop app or use Visio.
 
 ### Genesys Cloud
 
-_Note: Replace sample values for org name, flowID and flow name with your actual values._
+_Note: Replace sample values for org name, flowID and flow name with your actual values._<br>
+
+When using Genesys Cloud fetch options (-f, -a, or -n), you must specify the organization with -p or have [default] set in config.toml.
 
 - Fetch all inbound call flows from a Genesys Cloud organization
   <br>`CallFlowVisualizer.exe -f all -t inboundcall -p YourOrgName`
@@ -92,6 +94,7 @@ _Note: Replace sample values for org name, flowID and flow name with your actual
   <br>`CallFlowVisualizer.exe -f 31942f02-e8c6-46cc-8bed-63967548a8fa -v -p YourOrgName`
 - Specify JSON file in c:\temp
   <br>`CallFlowVisualizer.exe c:\temp\[YourOrgName](inqueuecall)_MarketingDiv_31942f02-e8c6-46cc-8bed-63967548a8fa.json`
+
 
 #### Command Line argument
 
@@ -106,6 +109,7 @@ _Note: Replace sample values for org name, flowID and flow name with your actual
 | -l       | Create Genesys Cloud Participant Data List as PDList_YYYYMMDD-hhmmss.csv                |
 | -n       | Fetch latest flows with flowName from GenesysCloud                                      |
 | -t       | Fetch latest flows with flowType from GenesysCloud                                      |
+| -r       | Create reference documents for flow data actions/table as DATAStepsReference_*.csv & .md|
 
 ## 5. Customize file format and style
 
@@ -124,6 +128,7 @@ Change config values in appsettings.json
 | convertToVisio                   | Always convert to Visio format without specifying -v option           | false   |
 | convertToPng                     | Always convert to png format without specifying -n option             | true    |
 | createParticipantDataList        | Always create Genesys Cloud Participant Data List                     | false   |
+| createDataStepReference          | Always create reference documents for data actions and data tables    | false   |
 | createflowPerReusabletask        | Create draw.io flow files per Re-usable Task                          | false   |
 | maxSecondDescriptionLengh        | Max second description length                                         | 1024    |
 | showExpression                   | Show expression for UpdateVariableAction / Get/SetAttributesAction    | true    |

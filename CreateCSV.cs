@@ -735,9 +735,141 @@ namespace CallFlowVisualizer
 
         }
 
+        //[ADD]2025/05/07 v1.8.2
+		internal static void CreateDataStepReferenceCSVGenCloud(List<GenesysCloudDataStep> gcDATAStepList)
+		{
+			string currentPath = Directory.GetCurrentDirectory();
+			createCSVFolder(currentPath);
 
-        // Create CSV folder if it does not exists
-        private static void createCSVFolder(string currentPath)
+			string csvfilename = Path.Combine(currentPath, "csv", "DATAStepsReference" + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss") + ".csv");
+
+			// The file need to be UTF-8 without BOM
+			using (var streamWriter = new StreamWriter(csvfilename, false, Encoding.Default))
+
+			using (var csv = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+			{
+
+				csv.WriteField("Organisation Name");
+				csv.WriteField("Flow Type");
+				csv.WriteField("Flow Id");
+				csv.WriteField("Architect Flow Name");
+				csv.WriteField("Flow Name");
+				csv.WriteField("Name");
+				csv.WriteField("Reference Number");
+				csv.WriteField("Type");
+				csv.WriteField("DataTable Name");
+				csv.WriteField("DataTable Id");
+				csv.WriteField("DataAction Name");
+
+
+				var maxInputCount = gcDATAStepList.Select(x => x.inputs.Count).ToList().Max();
+				for (int i = 0; i < maxInputCount; i++)
+				{
+					csv.WriteField("Input" + (i + 1).ToString()+" Key");
+					csv.WriteField("Input" + (i + 1).ToString() + " Value");
+
+				}
+
+				var maxOutputCount = gcDATAStepList.Select(x => x.outputs.Count).ToList().Max();
+				for (int i = 0; i < maxOutputCount; i++)
+				{
+					csv.WriteField("Output" + (i + 1).ToString() + " Key");
+					csv.WriteField("Output" + (i + 1).ToString() + " Value");
+
+				}
+
+				csv.NextRecord();
+
+				foreach (var gcDATAStepList_i in gcDATAStepList)
+				{
+					csv.WriteField(gcDATAStepList_i.OrgName);
+					csv.WriteField(gcDATAStepList_i.FlowType);
+					csv.WriteField(gcDATAStepList_i.FlowID);
+					csv.WriteField(gcDATAStepList_i.ArchitectFlowName);
+					csv.WriteField(gcDATAStepList_i.FlowName);
+					csv.WriteField(gcDATAStepList_i.Name);
+					csv.WriteField(gcDATAStepList_i.Id);
+					csv.WriteField(gcDATAStepList_i.Type);
+
+                    if(gcDATAStepList_i.DataTableName != null)
+					{
+						csv.WriteField(gcDATAStepList_i.DataTableName);
+					}
+					else
+					{
+						csv.WriteField("");
+					}
+
+					if (gcDATAStepList_i.DataTableId != null)
+					{
+						csv.WriteField(gcDATAStepList_i.DataTableId);
+					}
+					else
+					{
+						csv.WriteField("");
+					}
+
+                    if(gcDATAStepList_i.DataActionName != null)
+                    {
+						csv.WriteField(gcDATAStepList_i.DataActionName);
+					}
+                    else
+                    {
+						csv.WriteField("");
+					}
+
+
+					if (gcDATAStepList_i.inputs.Count > 0)
+                    {
+                        foreach (var input_i in gcDATAStepList_i.inputs)
+                        {
+                            csv.WriteField(input_i.name);
+                            csv.WriteField(input_i.text);
+
+                        }
+
+                        for (int i = 0; i < maxInputCount - gcDATAStepList_i.inputs.Count; i++)
+                        {
+                            csv.WriteField("");
+                            csv.WriteField("");
+                        }
+                    }
+
+					if (gcDATAStepList_i.outputs.Count > 0)
+					{
+						foreach (var output_i in gcDATAStepList_i.outputs)
+						{
+							csv.WriteField(output_i.name);
+							csv.WriteField(output_i.text);
+						}
+
+						for (int i = 0; i < maxOutputCount - gcDATAStepList_i.outputs.Count; i++)
+						{
+							csv.WriteField("");
+							csv.WriteField("");
+						}
+
+                    }
+                    else
+                    {
+						for (int i = 0; i < maxOutputCount; i++)
+						{
+							csv.WriteField("");
+							csv.WriteField("");
+						}
+					}
+                        csv.NextRecord();
+
+				}
+
+			}
+
+		}
+
+
+
+		// Create CSV folder if it does not exists
+		private static void createCSVFolder(string currentPath)
         {
             try
             {

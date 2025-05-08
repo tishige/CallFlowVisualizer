@@ -216,5 +216,46 @@ namespace CallFlowVisualizer
 
         }
 
-    }
+        
+		internal static void gcJsonToDATAStepsListCSV(List<string> filePathList)
+		{
+
+			Console.WriteLine();
+			ColorConsole.WriteLine("Creating Data Steps reference documents of Architect flow", ConsoleColor.Yellow);
+
+			var pboptions = new ProgressBarOptions
+			{
+				ProgressCharacter = '─',
+				ProgressBarOnBottom = true
+			};
+
+			var csvpb = new ProgressBar(filePathList.Count(), "Generating Data Steps reference file", pboptions);
+
+			List<GenesysCloudDataStep> gcDataStepList = new();
+
+			foreach (var jsonFilePath_i in filePathList)
+			{
+
+                var dataStepResult = CollectGCDataSteps.CollectGCDataStep(jsonFilePath_i);
+
+				if (dataStepResult != null)
+				{
+					gcDataStepList.AddRange(dataStepResult);
+
+				}
+
+				csvpb.Tick(jsonFilePath_i);
+				Console.WriteLine();
+
+			}
+            
+			CreateCSV.CreateDataStepReferenceCSVGenCloud(gcDataStepList);
+
+			CreateMarkdown.CreateDataStepReferenceMD(gcDataStepList);
+
+			Console.WriteLine();
+
+		}
+
+	}
 }

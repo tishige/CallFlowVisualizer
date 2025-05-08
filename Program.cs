@@ -15,8 +15,8 @@ namespace CallFlowVisualizer
 {
     internal class Program
     {
-
-        static void Main(string[] args)
+		//Before running the program, please create a configuration file named 'appsettings.json' in the same directory as the program.
+		static void Main(string[] args)
         {
 
             bool convertToVisio = false;
@@ -31,6 +31,9 @@ namespace CallFlowVisualizer
             //[MOD] 2024/10/31 v1.7.1
             bool convertToDrawio = false;
             bool createParticipantDataList = false;
+
+			//[ADD] 2025/05/06 v1.8.2
+			bool createDataStepReference = false;
 
 
 			List<string> flowTypeList = new();
@@ -51,6 +54,7 @@ namespace CallFlowVisualizer
 
 				convertToDrawio = configRoot.GetSection("drawioSettings").Get<DrawioSettings>().ConvertToDrawio;
 				createParticipantDataList = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateParticipantDataList;
+				createDataStepReference = configRoot.GetSection("cfvSettings").Get<CfvSettings>().CreateDataStepReference;
 
 
 
@@ -301,12 +305,18 @@ namespace CallFlowVisualizer
             }
 
 			//[MOD] 2024/10/31 v1.7.1
-			if (opt.createParticipantDataList|| createParticipantDataList)
+			if (opt.createParticipantDataList || createParticipantDataList)
             {
                 GcJSONtoCSV.gcJsonToPDListCSV(jsonFileListPD);
             }
 
-            Console.WriteLine();
+			//[ADD] 2025/05/06 v1.8.2
+			if (opt.reference || createDataStepReference)
+			{
+				GcJSONtoCSV.gcJsonToDATAStepsListCSV(jsonFileListPD);
+			}
+
+			Console.WriteLine();
             ColorConsole.WriteLine("Completed!", ConsoleColor.Yellow);
             Environment.Exit(0);
         }
@@ -334,7 +344,8 @@ namespace CallFlowVisualizer
             sb.AppendLine(@"  -v --visio     Convert to visio file after creating drawio files");
             sb.AppendLine(@"  -g --png       Convert to png file after creating drawio files");
             sb.AppendLine(@"  -l --list      Create Participant Data CSV list");
-            sb.AppendLine(@"  --help         Show this screen.");
+			sb.AppendLine(@"  -r --reference Create reference documents for flow data actions and data table lookups");
+			sb.AppendLine(@"  --help         Show this screen.");
             sb.AppendLine(@"  --version      Show version.");
             sb.AppendLine(@"  --debug        Show node id of architect on diagram.");
 
