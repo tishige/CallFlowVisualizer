@@ -117,12 +117,21 @@ namespace CallFlowVisualizer
 
             string taskName = null;
 
-            if (StartActionIdList.Count == 0)
+			List<GenesysCloudDataStep> dataStepList = new();
+
+			if (StartActionIdList.Count == 0)
             {
-                return null;
+				GenesysCloudDataStep dataStep = new();
+				dataStep.OrgName = orgName;
+				dataStep.FlowType = flowType;
+				dataStep.FlowID = flowID;
+				dataStep.ArchitectFlowName = architectFlowname;
+				dataStep.FlowName = taskName;
+				dataStepList.Add(dataStep);
+				return dataStepList;
 
             }
-			List<GenesysCloudDataStep> dataStepList = new();
+			
 
 			foreach (var flowSeqItem in flowSeqItemList)
             {

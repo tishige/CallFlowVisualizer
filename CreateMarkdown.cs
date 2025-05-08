@@ -22,7 +22,7 @@ namespace CallFlowVisualizer
             createCSVFolder(currentPath);
 
             string csvfilename = Path.Combine(currentPath, "csv", "DATAStepsReference" + "_" + DateTime.Now.ToString(@"yyyyMMdd-HHmmss") + ".md");
-            string orgName = gcDATAStepList[0].OrgName;
+           
 
             var gcDataStepGroupbyID = gcDATAStepList.GroupBy(x => x.FlowID).ToList();
 
@@ -30,7 +30,15 @@ namespace CallFlowVisualizer
             using (var streamWriter = new StreamWriter(csvfilename, false, Encoding.Default))
             {
 				streamWriter.WriteLine("# Genesys Cloud DATA Steps Reference Documents");
-				streamWriter.WriteLine("### Orgnization Name:" + orgName);
+
+                if (gcDATAStepList.Count == 0)
+				{
+					streamWriter.WriteLine("No DATA Steps");
+					return;
+				}
+
+
+				streamWriter.WriteLine("### Orgnization Name:" + gcDATAStepList[0].OrgName);
 				streamWriter.WriteLine("---");
 
 				foreach (var gcDataStepGroupbyID_i in gcDataStepGroupbyID)

@@ -762,23 +762,46 @@ namespace CallFlowVisualizer
 				csv.WriteField("DataAction Name");
 
 
-				var maxInputCount = gcDATAStepList.Select(x => x.inputs.Count).ToList().Max();
-				for (int i = 0; i < maxInputCount; i++)
+				var maxInputCount = gcDATAStepList.Any() ? gcDATAStepList.Select(x => x.inputs.Count).Max() : 0;
+
+                if(maxInputCount == 0)
 				{
-					csv.WriteField("Input" + (i + 1).ToString()+" Key");
-					csv.WriteField("Input" + (i + 1).ToString() + " Value");
+					csv.WriteField("Input1 Key");
+					csv.WriteField("Input1 Value");
+                }
+                else
+                {
+					for (int i = 0; i < maxInputCount; i++)
+					{
+						csv.WriteField("Input" + (i + 1).ToString() + " Key");
+						csv.WriteField("Input" + (i + 1).ToString() + " Value");
+					}
 
 				}
 
-				var maxOutputCount = gcDATAStepList.Select(x => x.outputs.Count).ToList().Max();
-				for (int i = 0; i < maxOutputCount; i++)
-				{
-					csv.WriteField("Output" + (i + 1).ToString() + " Key");
-					csv.WriteField("Output" + (i + 1).ToString() + " Value");
+
+				var maxOutputCount = gcDATAStepList.Any() ? gcDATAStepList.Select(x => x.outputs.Count).Max() : 0;
+                if (maxOutputCount == 0)
+                {
+					csv.WriteField("Output1 Key");
+					csv.WriteField("Output1 Value");
+				}
+                else
+                {
+					for (int i = 0; i < maxOutputCount; i++)
+					{
+						csv.WriteField("Output" + (i + 1).ToString() + " Key");
+						csv.WriteField("Output" + (i + 1).ToString() + " Value");
+
+					}
 
 				}
+
+
 
 				csv.NextRecord();
+
+
 
 				foreach (var gcDATAStepList_i in gcDATAStepList)
 				{
