@@ -564,6 +564,21 @@ namespace CallFlowVisualizer
 
 						break;
 
+                    case "SwitchAction":
+                        //[ADD]2025/06/04 v1.8.3
+                        if (action_i["expression"] != null && action_i["expression"]["text"].ToString() == "")
+                        {
+                            flowNode.Desc2 = (string)action_i["expression"]["type"].ToString();
+                        }
+                        else
+                        {
+							flowNode.Desc2 = (string)action_i["expression"]["text"] ?? (string)action_i["expression"]["text"];
+						}
+
+						
+                        break;
+
+
 
 					default:
 
@@ -993,9 +1008,59 @@ namespace CallFlowVisualizer
 
                                     break;
 
-                                default:
+								//[ADD]2025/06/24
 
-                                    foreach (var paths in action_i["paths"])
+								case "SwitchAction":
+									int caseSeq = 0;
+									foreach (var paths in action_i["paths"])
+									{
+
+										branchId = null;
+										branchNextAction = null;
+										if (paths["outputId"].ToString().Contains("__"))
+										{
+											branchId = action_i["id"].ToString() + paths["outputId"].ToString();
+										}
+										else // Case 1,Case 2...
+										{
+											branchId = action_i["id"].ToString() + "__" + paths["label"].ToString().Replace(" ", "") + "__";
+
+										}
+										branchTrackingId = action_i["trackingId"].ToString();
+										branchName = action_i["name"].ToString() + "_" + paths["label"].ToString();
+
+
+										branchType = action_i["__type"].ToString() + "_Sub";
+
+                                        if (caseSeq < action_i["cases"].Count())
+                                        {
+											String caseText = action_i["cases"][caseSeq]["value"]["text"].ToString();
+											//branchType = branchType + "<br>" + caseText;
+                                            branchName=branchName + "<br>" + caseText;
+											caseSeq++;
+										}
+
+
+
+										if (paths["nextActionId"] != null)
+										{
+											branchNextAction = paths["nextActionId"].ToString();
+										}
+										else if (action_i["nextAction"] != null)
+										{
+											branchNextAction = action_i["nextAction"].ToString();
+										}
+
+										jvalue = SetJvalue(branchId, branchTrackingId, branchName, branchType, branchNextAction, action_i["id"].ToString());
+										tmpActionList.Add(jvalue);
+
+									}
+
+									break;
+
+								default:
+
+									foreach (var paths in action_i["paths"])
                                     {
 
                                         branchId = null;
@@ -1011,8 +1076,8 @@ namespace CallFlowVisualizer
                                         }
                                         branchTrackingId = action_i["trackingId"].ToString();
                                         branchName = action_i["name"].ToString() + "_" + paths["label"].ToString();
-                                        branchType = action_i["__type"].ToString() + "_Sub";
-                                        if (paths["nextActionId"] != null)
+
+										if (paths["nextActionId"] != null)
                                         {
                                             branchNextAction = paths["nextActionId"].ToString();
                                         }
