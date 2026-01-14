@@ -161,3 +161,5 @@ Change config values in appsettings.json
 
    - Convert all .drawio files in c:\temp\flow to visio format, then save to c:\temp\visio
      <br>`.\draw.io -x -f vsdx c:\temp\flow -o c:\temp\visio`
+     
+5. Please do not use “##” at the beginning of step names or flow names. It's used as a special code for page breaks.
