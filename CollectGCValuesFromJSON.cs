@@ -1077,7 +1077,10 @@ namespace CallFlowVisualizer
                                         branchTrackingId = action_i["trackingId"].ToString();
                                         branchName = action_i["name"].ToString() + "_" + paths["label"].ToString();
 
-										if (paths["nextActionId"] != null)
+                                        //[FIX] 2026/8/21 v1.8.4
+                                        branchType = action_i["__type"].ToString() + "_Sub";
+
+                                        if (paths["nextActionId"] != null)
                                         {
                                             branchNextAction = paths["nextActionId"].ToString();
                                         }
